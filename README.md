@@ -1,3 +1,3 @@
-Source code for course Build Servers with Bund and Node
+Source code for course Build Servers with Bun and Node
 
 By David Choi
