@@ -1,5 +1,4 @@
 import Fastify from "fastify";
-import createError from "@fastify/error";
 import {
   serializerCompiler,
   validatorCompiler,
