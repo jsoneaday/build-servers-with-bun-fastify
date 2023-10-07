@@ -1,4 +1,4 @@
-# webserver
+# basic
 
 To install dependencies:
 
