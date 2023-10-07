@@ -7,12 +7,12 @@ server.get("/", (request, reply) => {
 });
 
 server.get<{
-  Headers: { "my-header": string };
+  Headers: { myheader: string };
   Querystring: { id: string };
   Reply: { 200: { status: "success!" } };
 }>("/employee", (request, reply) => {
-  // const header = request.headers["my-headers"];
-  // // attempting to return undefined causes a hang and ultimately failure of the route
+  // const header = request.headers.myheader;
+  // attempting to return undefined causes a hang and ultimately failure of the route
   // return header ? header : "not found";
 
   // const queryId = request.query.id;
