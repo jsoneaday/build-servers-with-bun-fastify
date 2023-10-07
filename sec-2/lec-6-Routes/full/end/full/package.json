@@ -1,5 +1,5 @@
 {
-  "name": "basic",
+  "name": "full",
   "module": "index.ts",
   "type": "module",
   "scripts": {
