@@ -10,7 +10,7 @@ server.get<{
   Headers: { myheader: string };
   Querystring: { id: string };
   Reply: { 200: { status: string } };
-}>("/employee", (request, reply) => {
+}>("/employee", async (request, reply) => {
   // const header = request.headers.myheader;
   // attempting to return undefined causes a hang and ultimately failure of the route
   // return header ? header : "not found";
@@ -18,7 +18,8 @@ server.get<{
   // const queryId = request.query.id;
   // return queryId;
 
-  reply.status(200).send({ status: "success!" });
+  // best practice on async handlers to return or await reply.send
+  return reply.status(200).send({ status: "success!" });
 });
 
 server.post<{
@@ -28,10 +29,13 @@ server.post<{
   return id;
 });
 
-server.get<{ Params: { id: string } }>("/employee/:id", (request, reply) => {
-  const paramId = request.params.id;
-  return paramId;
-});
+server.get<{ Params: { id: string } }>(
+  "/employee/:id",
+  async (request, reply) => {
+    const paramId = request.params.id;
+    return paramId;
+  }
+);
 
 server.listen({ port: 8080, host: "::1" }, (err, address) => {
   if (err) {
