@@ -1,5 +1,5 @@
 {
-  "name": "schema",
+  "name": "decorators",
   "module": "index.ts",
   "type": "module",
   "scripts": {

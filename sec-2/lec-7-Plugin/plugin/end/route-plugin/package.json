@@ -1,5 +1,5 @@
 {
-  "name": "basic-plugin",
+  "name": "route-plugin",
   "module": "index.ts",
   "type": "module",
   "scripts": {
