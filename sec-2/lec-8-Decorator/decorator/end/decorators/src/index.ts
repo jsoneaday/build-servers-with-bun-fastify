@@ -1,7 +1,5 @@
 import Fastify from "fastify";
-import createError from "@fastify/error";
-import { Type } from "@sinclair/typebox";
-import { TypeBoxTypeProvider } from "@fastify/type-provider-typebox";
+import decorators from "./decorators";
 
 const server = Fastify({
   logger: {
@@ -9,22 +7,7 @@ const server = Fastify({
   },
 });
 
-server.post("/", async (request, reply) => {
-  server.log.info(`request.validationError ${request.validationError}`);
-
-  if (request.validationError) {
-    return reply.status(500).send({
-      statusCode: 500,
-      error: "MY_ERROR",
-      message: "From route",
-    });
-  }
-
-  return {
-    id: 1,
-    fullName: `${request.body.userName}`,
-  };
-});
+server.register(decorators);
 
 server.listen({ port: 8080, host: "::1" }, (err, address) => {
   if (err) {
