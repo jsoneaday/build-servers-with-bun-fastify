@@ -1,9 +1,12 @@
 import { FastifyInstance } from "fastify";
 
 export default async function (fastify: FastifyInstance) {
-  fastify.log.info({ user: "testing logger object" });
+  // does not work, requires logging from request
+  fastify.log.info({ user: "from instance" });
+
   fastify.get("/log", async (req, rep) => {
-    req.log.info({ user: "testing logger object" });
+    req.log.info({ user: "from req user" });
+
     return;
   });
 }
