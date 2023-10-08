@@ -29,6 +29,7 @@ server.register(typedplugin, {
 server.register(scopedplugin);
 
 server.register(loggerplugin, {
+  logLevel: "info",
   logSerializers: {
     user: (value: any) => `User value: ${value}`,
   },
