@@ -7,26 +7,21 @@ server.get("/", (request, reply) => {
 });
 
 server.get<{
-  Headers: { myheader: string };
+  Headers: { myheader: number };
   Querystring: { id: string };
   Reply: { 200: { status: string } };
 }>("/employee", async (request, reply) => {
-  // const header = request.headers.myheader;
-  // attempting to return undefined causes a hang and ultimately failure of the route
-  // return header ? header : "not found";
+  // return req.headers.myheader;
 
-  // const queryId = request.query.id;
-  // return queryId;
+  // return `you passed ${req.query.id}`;
 
-  // best practice on async handlers to return or await reply.send
   return reply.status(200).send({ status: "success!" });
 });
 
 server.post<{
-  Body: { id: string };
-}>("/employee", async (request, reply) => {
-  const id = request.body.id;
-  return id;
+  Body: { userName: string };
+}>("/employee", async (req, rep) => {
+  return `userName is ${req.body.userName}`;
 });
 
 server.get<{ Params: { id: string } }>(
