@@ -1,15 +1,14 @@
 import { FastifyInstance, FastifyPluginAsync } from "fastify";
 
-type MyVal = { myval: string };
+export type MyVal = { myval: string };
 
-// add typing and use option
 const typedplugin: FastifyPluginAsync<MyVal> = async function (
   fastify: FastifyInstance,
   options: MyVal
 ) {
-  fastify.get("/b", async (request, reply) => {
-    fastify.log.info(`myval - ${options.myval}`);
-    return "hello world b";
+  fastify.get("/b", async (req, rep) => {
+    fastify.log.info("inside typedplugin route handler");
+    return `hello world b ${options.myval}`;
   });
 };
 
