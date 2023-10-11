@@ -1,0 +1,21 @@
+{
+  "name": "setErrorHandler",
+  "module": "index.ts",
+  "type": "module",
+  "scripts": {
+    "dev": "bun --hot ./src/index.ts"
+  },
+  "devDependencies": {
+    "@types/node": "^20.8.3",
+    "bun-types": "latest"
+  },
+  "peerDependencies": {
+    "typescript": "^5.0.0"
+  },
+  "dependencies": {
+    "@fastify/error": "^3.4.0",
+    "@fastify/type-provider-typebox": "^3.5.0",
+    "@sinclair/typebox": "^0.31.17",
+    "fastify": "^4.23.2"
+  }
+}
