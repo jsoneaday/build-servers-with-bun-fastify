@@ -1,11 +1,8 @@
 import Fastify from "fastify";
-import { TypeBoxTypeProvider } from "@fastify/type-provider-typebox";
 
 const server = Fastify({
-  logger: {
-    level: "info",
-  },
-}).withTypeProvider<TypeBoxTypeProvider>();
+  logger: true,
+});
 
 server.listen({ port: 8080, host: "::1" }, (err, address) => {
   if (err) {
