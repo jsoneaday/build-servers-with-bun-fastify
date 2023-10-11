@@ -1,11 +1,8 @@
-import Fastify from "fastify";
-import decorators from "./decorators";
+import Fastify, { FastifyReply, FastifyRequest } from "fastify";
 
 const server = Fastify({
   logger: true,
 });
-
-server.register(decorators);
 
 server.listen({ port: 8080, host: "::1" }, (err, address) => {
   if (err) {
