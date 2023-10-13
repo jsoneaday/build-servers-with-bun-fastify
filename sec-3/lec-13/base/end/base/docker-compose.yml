@@ -1,0 +1,30 @@
+version: "3.4"
+
+services:
+  db:
+    image: postgres:14.0
+    volumes:
+      - ./dbdata:/var/lib/postgresql/data
+    environment:
+      POSTGRES_DB: postgres
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: postgres
+    ports:
+      - 5432:5432
+    restart: always
+  webserver:
+    image: fastserver
+    build:
+      context: .
+      dockerfile: Dockerfile
+    environment:
+      - POSTGRES_HOST=db
+      - POSTGRES_DB=postgres
+      - POSTGRES_USER=postgres
+      - POSTGRES_PASSWORD=postgres
+      - PORT=4000
+      - HOST=0.0.0.0
+    ports:
+      - 4000:4000
+    depends_on:
+      - db
