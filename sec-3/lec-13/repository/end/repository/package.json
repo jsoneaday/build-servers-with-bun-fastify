@@ -1,0 +1,23 @@
+{
+  "name": "repository",
+  "module": "index.ts",
+  "type": "module",
+  "scripts": {
+    "dev": "bun --hot ./src/index.ts",
+    "generate": "drizzle-kit generate:pg"
+  },
+  "devDependencies": {
+    "@types/node": "^20.8.2",
+    "bun-types": "latest",
+    "drizzle-kit": "^0.19.13"
+  },
+  "peerDependencies": {
+    "typescript": "^5.0.0"
+  },
+  "dependencies": {
+    "drizzle-orm": "^0.28.6",
+    "fastify": "^4.23.2",
+    "fastify-plugin": "^4.5.1",
+    "postgres": "^3.4.0"
+  }
+}
