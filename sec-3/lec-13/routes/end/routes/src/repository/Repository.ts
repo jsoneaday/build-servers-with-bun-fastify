@@ -3,40 +3,33 @@ import { migrate } from "drizzle-orm/postgres-js/migrator";
 import postgres from "postgres";
 import path from "node:path";
 import fs from "node:fs";
-import MessageRepo from "./MessageRepo";
-import ProfileRepo from "./ProfileRepo";
 import * as MessageSchema from "../db/schema/Message";
 import * as ProfileSchema from "../db/schema/Profile";
 
-const db_conn = `postgres://${process.env.POSTGRES_USER}:${process.env.POSTGRES_PASSWORD}@${process.env.POSTGRES_HOST}:${process.env.POSTGRES_PORT}/${process.env.POSTGRES_DB}`;
-const queryClient = postgres(db_conn);
-const schema = { ...MessageSchema, ...ProfileSchema };
-const db = drizzle(queryClient, { schema });
-export type DB = typeof db;
+export function setupQueryClient(db_conn: string) {
+  return postgres(db_conn);
+}
+export function setupDrizzle(queryClient: postgres.Sql<{}>) {
+  const schema = { ...MessageSchema, ...ProfileSchema };
+  return drizzle(queryClient, { schema });
+}
+
+export type DB = ReturnType<typeof setupDrizzle>;
 
 export default class Repository {
-  private readonly _db: DB;
-  private readonly _messageRepo: MessageRepo;
-  get messageRepo(): MessageRepo {
-    return this._messageRepo;
-  }
-  private readonly _profileRepo: ProfileRepo;
-  get profileRepo(): ProfileRepo {
-    return this._profileRepo;
-  }
-
-  constructor(runMigrations = false) {
+  constructor(
+    private readonly db_conn: string,
+    private readonly queryClient: postgres.Sql<{}>,
+    public readonly db: DB,
+    runMigrations = false
+  ) {
     if (runMigrations) {
       runMigration(db_conn);
     }
-
-    this._db = db;
-    this._messageRepo = new MessageRepo(this._db);
-    this._profileRepo = new ProfileRepo(this._db);
   }
 
   async close() {
-    await queryClient.end();
+    await this.queryClient.end();
   }
 }
 
