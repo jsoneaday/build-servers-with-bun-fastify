@@ -1,12 +1,21 @@
-import { drizzle, PostgresJsDatabase } from "drizzle-orm/postgres-js";
-import { migrate } from "drizzle-orm/postgres-js/migrator";
-import postgres from "postgres";
+import { PrismaClient } from "@prisma/client";
 
-const db_conn = `postgres://${process.env.POSTGRES_USER}:${process.env.POSTGRES_PASSWORD}@${process.env.POSTGRES_HOST}:${process.env.POSTGRES_PORT}/${process.env.POSTGRES_DB}`;
-console.log("db_conn", db_conn);
-const migrationClient = postgres(db_conn, { max: 1 });
-await migrate(drizzle(migrationClient), __dirname + "/migrations");
+export enum SortOrder {
+  Asc = "asc",
+  Desc = "desc",
+}
 
-const queryClient = postgres(db_conn);
-const db: PostgresJsDatabase = drizzle(queryClient);
-export default db;
+export default class Repository {
+  private _prisma: PrismaClient;
+  get prisma() {
+    return this._prisma;
+  }
+
+  constructor() {
+    this._prisma = new PrismaClient();
+  }
+
+  async close() {
+    await this._prisma.$disconnect();
+  }
+}
