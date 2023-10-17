@@ -27,6 +27,20 @@ export default class MessageRepo {
       where: {
         authorId,
       },
+      orderBy: {
+        updatedAt: SortOrder.Desc,
+      },
+    });
+  }
+
+  async selectMessageResponses(respondedMsgId: bigint) {
+    return await this.repo.prisma.messageResponse.findMany({
+      select: {
+        responderMsg: true,
+      },
+      where: {
+        respondedMsgId,
+      },
     });
   }
 
