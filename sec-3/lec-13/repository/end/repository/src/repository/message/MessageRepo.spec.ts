@@ -152,12 +152,8 @@ describe("MessageRepo", () => {
       respondedMessage.id
     );
     expect(selectedResponderMessage.length).toBe(1);
-    expect(selectedResponderMessage[0].responderMsg.id).toBe(
-      responderMessage.id
-    );
-    expect(selectedResponderMessage[0].responderMsg.body).toBe(responderBody);
-    expect(selectedResponderMessage[0].responderMsg.image).toEqual(
-      responderImage
-    );
+    expect(selectedResponderMessage[0].id).toBe(responderMessage.id);
+    expect(selectedResponderMessage[0].body).toBe(responderBody);
+    expect(selectedResponderMessage[0].image).toEqual(responderImage);
   });
 });

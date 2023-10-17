@@ -17,32 +17,34 @@ export default class ProfileRepo {
 
   /// Select the profiles that this user is followed
   async selectFollowedProfiles(followerId: bigint) {
-    return await this._repo.prisma.follow.findMany({
-      select: {
-        followed: true,
-      },
-      where: {
-        followerId,
-      },
-      orderBy: {
-        updatedAt: SortOrder.Desc,
-      },
-    });
+    return (
+      await this._repo.prisma.follow.findMany({
+        select: {
+          followed: true,
+        },
+        where: {
+          followerId,
+        },
+      })
+    )
+      .flatMap((follow) => follow.followed)
+      .sort((a, b) => b.updatedAt.getTime() - a.updatedAt.getTime());
   }
 
   /// select profiles that are followers of this user
   async selectFollowerProfiles(followedId: bigint) {
-    return await this._repo.prisma.follow.findMany({
-      select: {
-        follower: true,
-      },
-      where: {
-        followedId,
-      },
-      orderBy: {
-        updatedAt: SortOrder.Desc,
-      },
-    });
+    return (
+      await this._repo.prisma.follow.findMany({
+        select: {
+          follower: true,
+        },
+        where: {
+          followedId,
+        },
+      })
+    )
+      .flatMap((follow) => follow.follower)
+      .sort((a, b) => b.updatedAt.getTime() - a.updatedAt.getTime());
   }
 
   async insertProfile(

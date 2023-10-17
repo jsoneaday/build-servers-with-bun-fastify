@@ -107,24 +107,81 @@ describe("ProfileRepo", () => {
       const dbFollowedProfile = followedProfiles[i];
       const listedFollowedProfile = listOfFollowedProfiles[i];
 
-      expect(dbFollowedProfile.followed.userName).toBe(
-        listedFollowedProfile.userName
-      );
-      expect(dbFollowedProfile.followed.fullName).toBe(
-        listedFollowedProfile.fullName
-      );
-      expect(dbFollowedProfile.followed.description).toBe(
+      expect(dbFollowedProfile.userName).toBe(listedFollowedProfile.userName);
+      expect(dbFollowedProfile.fullName).toBe(listedFollowedProfile.fullName);
+      expect(dbFollowedProfile.description).toBe(
         listedFollowedProfile.description
       );
-      expect(dbFollowedProfile.followed.region).toBe(
-        listedFollowedProfile.region
+      expect(dbFollowedProfile.region).toBe(listedFollowedProfile.region);
+      expect(dbFollowedProfile.mainUrl).toBe(listedFollowedProfile.mainUrl);
+      expect(dbFollowedProfile.avatar).toEqual(listedFollowedProfile.avatar);
+    }
+  });
+
+  it("select profiles that are following a followed", async () => {
+    const { userName, fullName, description, region, mainUrl, avatar } =
+      getNewProfile();
+
+    const followedProfile = await profileRepo.insertProfile(
+      userName,
+      fullName,
+      description,
+      region,
+      mainUrl,
+      avatar
+    );
+
+    // create multiple profiles to be followed
+    const size = 4;
+    let listOfFollowerProfiles: {
+      id: bigint;
+      createdAt: Date;
+      updatedAt: Date;
+      userName: string;
+      fullName: string;
+      description: string | null;
+      region: string | null;
+      mainUrl: string | null;
+      avatar: Buffer | null;
+    }[] = new Array(size);
+    for (let i = 0; i < size; i++) {
+      const userName = faker.internet.userName();
+      const fullName = faker.person.fullName();
+      const description = faker.lorem.sentences(2);
+      const region = faker.location.country();
+      const mainUrl = faker.internet.url();
+      const avatar = Buffer.from(faker.image.avatar());
+
+      const followerProfile = await profileRepo.insertProfile(
+        userName,
+        fullName,
+        description,
+        region,
+        mainUrl,
+        avatar
       );
-      expect(dbFollowedProfile.followed.mainUrl).toBe(
-        listedFollowedProfile.mainUrl
+      listOfFollowerProfiles[i] = followerProfile;
+
+      await profileRepo.insertFollow(followerProfile.id, followedProfile.id);
+    }
+
+    const followerProfiles = await profileRepo.selectFollowerProfiles(
+      followedProfile.id
+    );
+
+    listOfFollowerProfiles = listOfFollowerProfiles.reverse();
+    for (let i = 0; i < followerProfiles.length; i++) {
+      const dbFollowerProfile = followerProfiles[i];
+      const listedFollowerProfile = listOfFollowerProfiles[i];
+
+      expect(dbFollowerProfile.userName).toBe(listedFollowerProfile.userName);
+      expect(dbFollowerProfile.fullName).toBe(listedFollowerProfile.fullName);
+      expect(dbFollowerProfile.description).toBe(
+        listedFollowerProfile.description
       );
-      expect(dbFollowedProfile.followed.avatar).toEqual(
-        listedFollowedProfile.avatar
-      );
+      expect(dbFollowerProfile.region).toBe(listedFollowerProfile.region);
+      expect(dbFollowerProfile.mainUrl).toBe(listedFollowerProfile.mainUrl);
+      expect(dbFollowerProfile.avatar).toEqual(listedFollowerProfile.avatar);
     }
   });
 });

@@ -34,14 +34,18 @@ export default class MessageRepo {
   }
 
   async selectMessageResponses(respondedMsgId: bigint) {
-    return await this.repo.prisma.messageResponse.findMany({
-      select: {
-        responderMsg: true,
-      },
-      where: {
-        respondedMsgId,
-      },
-    });
+    return (
+      await this.repo.prisma.messageResponse.findMany({
+        select: {
+          responderMsg: true,
+        },
+        where: {
+          respondedMsgId,
+        },
+      })
+    )
+      .flatMap((response) => response.responderMsg)
+      .sort((a, b) => b.updatedAt.getTime() - a.updatedAt.getTime());
   }
 
   async insertMessage(
