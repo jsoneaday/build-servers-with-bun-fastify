@@ -1,8 +1,12 @@
 import Fastify from "fastify";
+import Repository from "./repository/Repository";
 
 const server = Fastify({
   logger: true,
 });
+
+const repo = new Repository();
+server.decorate("repo", repo);
 
 server.listen(
   { port: Number(process.env.PORT), host: process.env.HOST },
