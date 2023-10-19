@@ -1,0 +1,26 @@
+{
+  "name": "routes",
+  "module": "index.ts",
+  "type": "module",
+  "scripts": {
+    "dev": "bun --hot ./src/index.ts",
+    "generate": "drizzle-kit generate:pg"
+  },
+  "devDependencies": {
+    "@faker-js/faker": "^8.2.0",
+    "@types/node": "^20.8.2",
+    "bun-types": "latest",
+    "prisma": "^5.4.2"
+  },
+  "peerDependencies": {
+    "typescript": "^5.0.0"
+  },
+  "dependencies": {
+    "@fastify/error": "^3.4.0",
+    "@fastify/type-provider-typebox": "^3.5.0",
+    "@prisma/client": "^5.4.2",
+    "@sinclair/typebox": "^0.31.18",
+    "fastify": "^4.23.2",
+    "fastify-plugin": "^4.5.1"
+  }
+}
