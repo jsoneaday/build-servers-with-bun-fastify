@@ -1,4 +1,6 @@
 import { PrismaClient } from "@prisma/client";
+import ProfileRepo from "./profile/ProfileRepo";
+import MessageRepo from "./message/MessageRepo";
 
 export enum SortOrder {
   Asc = "asc",
@@ -6,16 +8,17 @@ export enum SortOrder {
 }
 
 export default class Repository {
-  private _prisma: PrismaClient;
-  get prisma() {
-    return this._prisma;
-  }
+  private readonly prisma: PrismaClient;
+  readonly profileRepo: ProfileRepo;
+  readonly messageRepo: MessageRepo;
 
   constructor() {
-    this._prisma = new PrismaClient();
+    this.prisma = new PrismaClient();
+    this.profileRepo = new ProfileRepo(this.prisma);
+    this.messageRepo = new MessageRepo(this.prisma);
   }
 
   async close() {
-    await this._prisma.$disconnect();
+    await this.prisma.$disconnect();
   }
 }

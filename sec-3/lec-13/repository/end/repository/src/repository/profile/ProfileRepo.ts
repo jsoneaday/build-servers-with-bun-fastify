@@ -1,24 +1,20 @@
-import Repository, { SortOrder } from "../Repository";
+import { PrismaClient } from "@prisma/client";
 
 export default class ProfileRepo {
-  private _repo: Repository;
-
-  constructor(repo: Repository) {
-    this._repo = repo;
-  }
+  constructor(private readonly prisma: PrismaClient) {}
 
   async selectProfile(userName: string) {
-    return await this._repo.prisma.profile.findUnique({
+    return await this.prisma.profile.findUnique({
       where: {
         userName,
       },
     });
   }
 
-  /// Select the profiles that this user is followed
+  /// Select the profiles that this user has followed
   async selectFollowedProfiles(followerId: bigint) {
     return (
-      await this._repo.prisma.follow.findMany({
+      await this.prisma.follow.findMany({
         select: {
           followed: true,
         },
@@ -34,7 +30,7 @@ export default class ProfileRepo {
   /// select profiles that are followers of this user
   async selectFollowerProfiles(followedId: bigint) {
     return (
-      await this._repo.prisma.follow.findMany({
+      await this.prisma.follow.findMany({
         select: {
           follower: true,
         },
@@ -55,7 +51,7 @@ export default class ProfileRepo {
     mainUrl?: string,
     avatar?: Buffer
   ) {
-    return await this._repo.prisma.profile.create({
+    return await this.prisma.profile.create({
       data: {
         userName,
         fullName,
@@ -68,7 +64,7 @@ export default class ProfileRepo {
   }
 
   async insertFollow(followerId: bigint, followedId: bigint) {
-    return await this._repo.prisma.follow.create({
+    return await this.prisma.follow.create({
       data: {
         followerId,
         followedId,

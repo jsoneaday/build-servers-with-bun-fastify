@@ -1,11 +1,12 @@
-import Repository, { SortOrder } from "../Repository";
+import { PrismaClient } from "@prisma/client";
+import { SortOrder } from "../Repository";
 
 export default class MessageRepo {
-  constructor(private readonly repo: Repository) {}
+  constructor(private readonly prisma: PrismaClient) {}
 
   async selectMessagesOfFollowed(followerId: bigint) {
     return (
-      await this.repo.prisma.follow.findMany({
+      await this.prisma.follow.findMany({
         select: {
           followed: {
             select: {
@@ -23,7 +24,7 @@ export default class MessageRepo {
   }
 
   async selectMessagesByAuthorId(authorId: bigint) {
-    return await this.repo.prisma.message.findMany({
+    return await this.prisma.message.findMany({
       where: {
         authorId,
       },
@@ -35,7 +36,7 @@ export default class MessageRepo {
 
   async selectMessageResponses(respondedMsgId: bigint) {
     return (
-      await this.repo.prisma.messageResponse.findMany({
+      await this.prisma.messageResponse.findMany({
         select: {
           responderMsg: true,
         },
@@ -63,7 +64,7 @@ export default class MessageRepo {
       throw new Error("Cannot add additional message without broadcast");
     }
 
-    return await this.repo.prisma.$transaction(async (tx) => {
+    return await this.prisma.$transaction(async (tx) => {
       const newMessage = await tx.message.create({
         data: {
           authorId,
