@@ -3,8 +3,7 @@
   "module": "index.ts",
   "type": "module",
   "scripts": {
-    "dev": "bun --hot ./src/index.ts",
-    "generate": "drizzle-kit generate:pg"
+    "dev": "bun --hot ./src/index.ts"
   },
   "devDependencies": {
     "@faker-js/faker": "^8.2.0",

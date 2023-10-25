@@ -15,9 +15,8 @@ const profile: FastifyPluginAsync = async function (fastify) {
         }),
         response: {
           200: Type.Object({
-            id: Type.BigInt(),
-            createdAt: Type.Date(),
-            updatedAt: Type.Date(),
+            id: Type.Integer(),
+            updatedAt: Type.String(),
             userName: Type.String(),
             fullName: Type.String(),
             description: Type.Optional(Type.String()),
@@ -29,30 +28,29 @@ const profile: FastifyPluginAsync = async function (fastify) {
         },
       },
     },
-    async (request, reply) => {
+    async (request, rep) => {
       const result = await instance.repo.profileRepo.selectProfile(
         request.query.userName
       );
 
       if (!result) {
-        return reply.status(404).send({
+        return rep.status(404).send({
           statusCode: 404,
           error: "Not Found",
           message: "Profile not found",
         });
       }
 
-      return {
-        id: result.id,
-        createdAt: result.createdAt,
-        updatedAt: result.updatedAt,
+      return rep.status(200).send({
+        id: Number(result.id),
+        updatedAt: result.updatedAt.toISOString(),
         userName: result.userName,
         fullName: result.fullName,
         description: result.description || undefined,
         region: result.region || undefined,
         mainUrl: result.mainUrl || undefined,
         avatar: result.avatar || undefined,
-      };
+      });
     }
   );
 
@@ -68,12 +66,12 @@ const profile: FastifyPluginAsync = async function (fastify) {
           mainUrl: Type.Optional(Type.String()),
           avatar: Type.Optional(Type.Any()),
         }),
-        response: Type.Object({
+        response: {
           200: Type.Object({
-            id: Type.BigInt(),
+            id: Type.Integer(),
           }),
           500: Status500,
-        }),
+        },
       },
     },
     async (req, rep) => {
@@ -91,14 +89,14 @@ const profile: FastifyPluginAsync = async function (fastify) {
       if (!result) {
         return rep.status(500).send({
           statusCode: 500,
-          error: "Internal_Server_Error",
+          error: "Internal Server Error",
           message: "Failed to insert profile",
         });
       }
 
-      return {
-        id: result.id,
-      };
+      return rep.status(200).send({
+        id: Number(result.id),
+      });
     }
   );
 
@@ -107,14 +105,13 @@ const profile: FastifyPluginAsync = async function (fastify) {
     {
       schema: {
         querystring: Type.Object({
-          followerId: Type.BigInt(),
+          followerId: Type.Integer(),
         }),
         response: {
           200: Type.Array(
             Type.Object({
-              id: Type.BigInt(),
-              createdAt: Type.Date(),
-              updatedAt: Type.Date(),
+              id: Type.Integer(),
+              updatedAt: Type.String(),
               userName: Type.String(),
               fullName: Type.String(),
               description: Type.Optional(Type.String()),
@@ -130,7 +127,7 @@ const profile: FastifyPluginAsync = async function (fastify) {
     async (req, rep) => {
       const { followerId } = req.query;
       const result = await instance.repo.profileRepo.selectFollowedProfiles(
-        followerId
+        BigInt(followerId)
       );
 
       if (!result) {
@@ -141,17 +138,18 @@ const profile: FastifyPluginAsync = async function (fastify) {
         });
       }
 
-      return result.map((profile) => ({
-        id: profile.id,
-        createdAt: profile.createdAt,
-        updatedAt: profile.updatedAt,
-        userName: profile.userName,
-        fullName: profile.fullName,
-        description: profile.description || undefined,
-        region: profile.region || undefined,
-        mainUrl: profile.mainUrl || undefined,
-        avatar: profile.avatar || undefined,
-      }));
+      return rep.status(200).send(
+        result.map((profile) => ({
+          id: Number(profile.id),
+          updatedAt: profile.updatedAt.toISOString(),
+          userName: profile.userName,
+          fullName: profile.fullName,
+          description: profile.description || undefined,
+          region: profile.region || undefined,
+          mainUrl: profile.mainUrl || undefined,
+          avatar: profile.avatar || undefined,
+        }))
+      );
     }
   );
 
@@ -160,14 +158,13 @@ const profile: FastifyPluginAsync = async function (fastify) {
     {
       schema: {
         querystring: Type.Object({
-          followedId: Type.BigInt(),
+          followedId: Type.Integer(),
         }),
         response: {
           200: Type.Array(
             Type.Object({
-              id: Type.BigInt(),
-              createdAt: Type.Date(),
-              updatedAt: Type.Date(),
+              id: Type.Integer(),
+              updatedAt: Type.String(),
               userName: Type.String(),
               fullName: Type.String(),
               description: Type.Optional(Type.String()),
@@ -183,7 +180,7 @@ const profile: FastifyPluginAsync = async function (fastify) {
     async (req, rep) => {
       const { followedId } = req.query;
       const result = await instance.repo.profileRepo.selectFollowerProfiles(
-        followedId
+        BigInt(followedId)
       );
 
       if (!result) {
@@ -194,17 +191,18 @@ const profile: FastifyPluginAsync = async function (fastify) {
         });
       }
 
-      return result.map((profile) => ({
-        id: profile.id,
-        createdAt: profile.createdAt,
-        updatedAt: profile.updatedAt,
-        userName: profile.userName,
-        fullName: profile.fullName,
-        description: profile.description || undefined,
-        region: profile.region || undefined,
-        mainUrl: profile.mainUrl || undefined,
-        avatar: profile.avatar || undefined,
-      }));
+      return rep.status(200).send(
+        result.map((profile) => ({
+          id: Number(profile.id),
+          updatedAt: profile.updatedAt.toISOString(),
+          userName: profile.userName,
+          fullName: profile.fullName,
+          description: profile.description || undefined,
+          region: profile.region || undefined,
+          mainUrl: profile.mainUrl || undefined,
+          avatar: profile.avatar || undefined,
+        }))
+      );
     }
   );
 
@@ -213,35 +211,35 @@ const profile: FastifyPluginAsync = async function (fastify) {
     {
       schema: {
         body: Type.Object({
-          followerId: Type.BigInt(),
-          followedId: Type.BigInt(),
+          followerId: Type.Integer(),
+          followedId: Type.Integer(),
         }),
-        response: Type.Object({
+        response: {
           200: Type.Object({
-            followId: Type.BigInt(),
+            followId: Type.Integer(),
           }),
           500: Status500,
-        }),
+        },
       },
     },
     async (req, rep) => {
       const { followerId, followedId } = req.body;
       const result = await instance.repo.profileRepo.insertFollow(
-        followerId,
-        followedId
+        BigInt(followerId),
+        BigInt(followedId)
       );
 
       if (!result) {
         return rep.status(500).send({
           statusCode: 500,
-          error: "Internal_Server_Error",
+          error: "Internal Server Error",
           message: "Failed to insert follow",
         });
       }
 
-      return {
-        followId: result.id,
-      };
+      return rep.status(200).send({
+        followId: Number(result.id),
+      });
     }
   );
 };
