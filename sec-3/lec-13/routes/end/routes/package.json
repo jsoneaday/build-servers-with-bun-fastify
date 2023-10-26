@@ -9,8 +9,7 @@
     "@faker-js/faker": "^8.2.0",
     "@types/node": "^20.8.2",
     "bun-types": "latest",
-    "pino-pretty": "^10.2.3",
-    "prisma": "^5.5.2"
+    "pino-pretty": "^10.2.3"
   },
   "peerDependencies": {
     "typescript": "^5.0.0"

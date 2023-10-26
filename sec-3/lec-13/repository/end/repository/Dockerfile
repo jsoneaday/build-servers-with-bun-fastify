@@ -15,4 +15,5 @@ COPY prisma ./prisma
 COPY src ./
 
 RUN bun install --force
+RUN bun install -g prisma@5.5.2
 CMD bun prisma generate;bun ./index.ts
