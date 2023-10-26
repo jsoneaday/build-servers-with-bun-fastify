@@ -9,13 +9,13 @@
     "@faker-js/faker": "^8.2.0",
     "@types/node": "^20.8.2",
     "bun-types": "latest",
-    "prisma": "^5.4.2"
+    "prisma": "^5.5.2"
   },
   "peerDependencies": {
     "typescript": "^5.0.0"
   },
   "dependencies": {
-    "@prisma/client": "^5.4.2",
+    "@prisma/client": "^5.5.2",
     "fastify": "^4.23.2",
     "fastify-plugin": "^4.5.1"
   }

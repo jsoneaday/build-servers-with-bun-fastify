@@ -2,7 +2,7 @@
 CREATE TABLE "Profile" (
     "id" BIGSERIAL NOT NULL,
     "createdAt" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
-    "updatedAt" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    "updatedAt" TIMESTAMP(3) NOT NULL,
     "userName" VARCHAR(50) NOT NULL,
     "fullName" VARCHAR(100) NOT NULL,
     "description" VARCHAR(250),
@@ -17,7 +17,7 @@ CREATE TABLE "Profile" (
 CREATE TABLE "Follow" (
     "id" BIGSERIAL NOT NULL,
     "createdAt" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
-    "updatedAt" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    "updatedAt" TIMESTAMP(3) NOT NULL,
     "followerId" BIGINT NOT NULL,
     "followedId" BIGINT NOT NULL,
 
@@ -28,7 +28,7 @@ CREATE TABLE "Follow" (
 CREATE TABLE "Message" (
     "id" BIGSERIAL NOT NULL,
     "createdAt" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
-    "updatedAt" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    "updatedAt" TIMESTAMP(3) NOT NULL,
     "authorId" BIGINT NOT NULL,
     "body" VARCHAR(150) NOT NULL,
     "likes" INTEGER NOT NULL DEFAULT 0,
@@ -41,7 +41,7 @@ CREATE TABLE "Message" (
 CREATE TABLE "MessageResponse" (
     "id" BIGSERIAL NOT NULL,
     "createdAt" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
-    "updatedAt" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    "updatedAt" TIMESTAMP(3) NOT NULL,
     "responderMsgId" BIGINT NOT NULL,
     "respondedMsgId" BIGINT NOT NULL,
 
@@ -52,7 +52,7 @@ CREATE TABLE "MessageResponse" (
 CREATE TABLE "MessageBroadcast" (
     "id" BIGSERIAL NOT NULL,
     "createdAt" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
-    "updatedAt" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    "updatedAt" TIMESTAMP(3) NOT NULL,
     "broadcasterMsgId" BIGINT NOT NULL,
     "broadcastMsgId" BIGINT NOT NULL,
     "additionalMessage" VARCHAR(140),
