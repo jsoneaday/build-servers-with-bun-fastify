@@ -2,9 +2,11 @@ import app from "./app";
 import Repository from "./repository/Repository";
 
 const server = app((fastify) => {
-  fastify.decorate("repo", new Repository());
-
-  fastify.register(import("./route/profile/ProfileRoute"));
+  // fastify.decorate("repo", new Repository());
+  // fastify.register(import("./route/profile/ProfileRoute"));
+  // fastify.addHook("onClose", async () => {
+  //   await fastify.repo.close();
+  // });
 });
 
 server.listen(
