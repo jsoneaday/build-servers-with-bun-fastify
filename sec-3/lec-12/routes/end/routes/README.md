@@ -1,15 +1,11 @@
-# webserver
+Build Servers with Bun and Fastify
+By David Choi
 
-To install dependencies:
+# setup
 
-```bash
-bun install
-```
-
-To run:
-
-```bash
-bun run index.ts
-```
-
-This project was created using `bun init` in bun v1.0.4. [Bun](https://bun.sh) is a fast all-in-one JavaScript runtime.
+1. deploy docker
+   run sh deploy.sh
+2. deploy schema to db
+   run bunx prisma migrate deploy
+3. deploy test data
+   run psql -h localhost -p 5434 -d fastserver -U fastserver -a -f testdata.sql
