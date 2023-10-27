@@ -2,6 +2,7 @@ version: "3.4"
 
 services:
   db:
+    platform: linux/amd64
     image: postgres:14.0
     volumes:
       - ./dbdata:/var/lib/postgresql/data
@@ -13,6 +14,7 @@ services:
       - 5434:5432
     restart: always
   webserver:
+    platform: linux/amd64
     image: fastserver
     build:
       context: .
