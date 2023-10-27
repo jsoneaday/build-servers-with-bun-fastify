@@ -3,10 +3,10 @@ import Repository from "./repository/Repository";
 
 const server = app((fastify) => {
   fastify.decorate("repo", new Repository());
+
   fastify.register(import("./route/profile/ProfileRoute"));
-  fastify.addHook("onClose", async () => {
-    await fastify.repo.close();
-  });
+
+  fastify.register(import("./route/message/MessageRoute"));
 });
 
 server.listen(

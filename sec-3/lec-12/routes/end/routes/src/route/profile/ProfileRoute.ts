@@ -1,16 +1,21 @@
 import { TypeBoxTypeProvider } from "@fastify/type-provider-typebox";
 import { Type } from "@sinclair/typebox";
 import { FastifyPluginAsync } from "fastify";
-import { Status404, Status500 } from "../ResponseTypes";
+import {
+  Status404,
+  Status404Type,
+  Status500,
+  Status500Type,
+} from "../ResponseTypes";
 
 const profile: FastifyPluginAsync = async function (fastify) {
   const instance = fastify.withTypeProvider<TypeBoxTypeProvider>();
 
   instance.get(
-    "/profile",
+    "/profile/:userName",
     {
       schema: {
-        querystring: Type.Object({
+        params: Type.Object({
           userName: Type.String(),
         }),
         response: {
@@ -22,35 +27,40 @@ const profile: FastifyPluginAsync = async function (fastify) {
             description: Type.Optional(Type.String()),
             region: Type.Optional(Type.String()),
             mainUrl: Type.Optional(Type.String()),
-            avatar: Type.Optional(Type.Any()),
+            avatar: Type.Optional(Type.String({ contentEncoding: "base64" })),
           }),
-          404: Status404,
+          404: Status404Type,
         },
       },
     },
-    async (request, rep) => {
-      const result = await instance.repo.profileRepo.selectProfile(
-        request.query.userName
-      );
+    async (req, rep) => {
+      try {
+        const userName = req.params.userName.split("=")[1];
+        fastify.log.info(`get profile userName: ${userName}`);
+        const result = await instance.repo.profileRepo.selectProfile(userName);
 
-      if (!result) {
-        return rep.status(404).send({
-          statusCode: 404,
-          error: "Not Found",
-          message: "Profile not found",
+        if (!result) {
+          return rep.status(404).send({
+            ...Status404,
+            message: "Profile not found",
+          });
+        }
+
+        return rep.status(200).send({
+          id: Number(result.id),
+          updatedAt: result.updatedAt.toISOString(),
+          userName: result.userName,
+          fullName: result.fullName,
+          description: result.description || undefined,
+          region: result.region || undefined,
+          mainUrl: result.mainUrl || undefined,
+          avatar: result.avatar?.toString("base64") || undefined,
         });
-      }
+      } catch (e) {
+        fastify.log.error(`Query Error: ${e}`);
 
-      return rep.status(200).send({
-        id: Number(result.id),
-        updatedAt: result.updatedAt.toISOString(),
-        userName: result.userName,
-        fullName: result.fullName,
-        description: result.description || undefined,
-        region: result.region || undefined,
-        mainUrl: result.mainUrl || undefined,
-        avatar: result.avatar || undefined,
-      });
+        return rep.status(500).send(Status500);
+      }
     }
   );
 
@@ -70,7 +80,7 @@ const profile: FastifyPluginAsync = async function (fastify) {
           200: Type.Object({
             id: Type.Integer(),
           }),
-          500: Status500,
+          500: Status500Type,
         },
       },
     },
@@ -101,10 +111,10 @@ const profile: FastifyPluginAsync = async function (fastify) {
   );
 
   instance.get(
-    "/followed",
+    "/followed/:followerId",
     {
       schema: {
-        querystring: Type.Object({
+        params: Type.Object({
           followerId: Type.Integer(),
         }),
         response: {
@@ -120,12 +130,12 @@ const profile: FastifyPluginAsync = async function (fastify) {
               avatar: Type.Optional(Type.Any()),
             })
           ),
-          404: Status404,
+          404: Status404Type,
         },
       },
     },
     async (req, rep) => {
-      const { followerId } = req.query;
+      const { followerId } = req.params;
       const result = await instance.repo.profileRepo.selectFollowedProfiles(
         BigInt(followerId)
       );
@@ -154,10 +164,10 @@ const profile: FastifyPluginAsync = async function (fastify) {
   );
 
   instance.get(
-    "/followers",
+    "/followers/:followedId",
     {
       schema: {
-        querystring: Type.Object({
+        params: Type.Object({
           followedId: Type.Integer(),
         }),
         response: {
@@ -173,12 +183,12 @@ const profile: FastifyPluginAsync = async function (fastify) {
               avatar: Type.Optional(Type.Any()),
             })
           ),
-          404: Status404,
+          404: Status404Type,
         },
       },
     },
     async (req, rep) => {
-      const { followedId } = req.query;
+      const { followedId } = req.params;
       const result = await instance.repo.profileRepo.selectFollowerProfiles(
         BigInt(followedId)
       );
@@ -218,7 +228,7 @@ const profile: FastifyPluginAsync = async function (fastify) {
           200: Type.Object({
             followId: Type.Integer(),
           }),
-          500: Status500,
+          500: Status500Type,
         },
       },
     },

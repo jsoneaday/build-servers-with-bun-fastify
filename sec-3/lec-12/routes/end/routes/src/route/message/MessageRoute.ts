@@ -1,6 +1,6 @@
 import { Type, TypeBoxTypeProvider } from "@fastify/type-provider-typebox";
-import fastify, { FastifyInstance, FastifyPluginAsync } from "fastify";
-import { Status404 } from "../ResponseTypes";
+import { FastifyInstance, FastifyPluginAsync } from "fastify";
+import { Status404Type } from "../ResponseTypes";
 
 const messageRoute: FastifyPluginAsync = async function (
   fastify: FastifyInstance
@@ -8,10 +8,10 @@ const messageRoute: FastifyPluginAsync = async function (
   const instance = fastify.withTypeProvider<TypeBoxTypeProvider>();
 
   instance.get(
-    "/followedmsgs",
+    "/followedmsgs/:followerId",
     {
       schema: {
-        querystring: Type.Object({
+        params: Type.Object({
           followerId: Type.String(),
         }),
         response: {
@@ -25,15 +25,17 @@ const messageRoute: FastifyPluginAsync = async function (
               image: Type.Any(),
             })
           ),
-          404: Status404,
+          404: Status404Type,
         },
       },
     },
     async (req, rep) => {
-      const { followerId } = req.query;
+      const { followerId } = req.params;
       const result = await instance.repo.messageRepo.selectMessagesOfFollowed(
         BigInt(followerId)
       );
     }
   );
 };
+
+export default messageRoute;
