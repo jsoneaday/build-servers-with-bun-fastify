@@ -57,7 +57,7 @@ const profile: FastifyPluginAsync = async function (fastify) {
           avatar: result.avatar?.toString("base64") || undefined,
         });
       } catch (e) {
-        fastify.log.error(`Query Error: ${e}`);
+        fastify.log.error(`Get Profile Route Error: ${e}`);
         return rep.status(500).send(Status500);
       }
     }
@@ -107,8 +107,7 @@ const profile: FastifyPluginAsync = async function (fastify) {
           id: Number(result.id),
         });
       } catch (e) {
-        fastify.log.error(`Query Error: ${e}`);
-
+        fastify.log.error(`Insert Profile Route Error: ${e}`);
         return rep.status(500).send(Status500);
       }
     }
@@ -139,31 +138,36 @@ const profile: FastifyPluginAsync = async function (fastify) {
       },
     },
     async (req, rep) => {
-      const { followerId } = req.params;
-      const result = await instance.repo.profileRepo.selectFollowedProfiles(
-        BigInt(followerId)
-      );
+      try {
+        const { followerId } = req.params;
+        const result = await instance.repo.profileRepo.selectFollowedProfiles(
+          BigInt(followerId)
+        );
 
-      if (!result) {
-        return rep.status(404).send({
-          statusCode: 404,
-          error: "Not Found",
-          message: "Profile not found",
-        });
+        if (!result) {
+          return rep.status(404).send({
+            statusCode: 404,
+            error: "Not Found",
+            message: "Profile not found",
+          });
+        }
+
+        return rep.status(200).send(
+          result.map((profile) => ({
+            id: Number(profile.id),
+            updatedAt: profile.updatedAt.toISOString(),
+            userName: profile.userName,
+            fullName: profile.fullName,
+            description: profile.description || undefined,
+            region: profile.region || undefined,
+            mainUrl: profile.mainUrl || undefined,
+            avatar: profile.avatar?.toString("base64"),
+          }))
+        );
+      } catch (e) {
+        fastify.log.error(`Get Followed Route Error: ${e}`);
+        return rep.status(500).send(Status500);
       }
-
-      return rep.status(200).send(
-        result.map((profile) => ({
-          id: Number(profile.id),
-          updatedAt: profile.updatedAt.toISOString(),
-          userName: profile.userName,
-          fullName: profile.fullName,
-          description: profile.description || undefined,
-          region: profile.region || undefined,
-          mainUrl: profile.mainUrl || undefined,
-          avatar: profile.avatar?.toString("base64"),
-        }))
-      );
     }
   );
 
@@ -192,32 +196,37 @@ const profile: FastifyPluginAsync = async function (fastify) {
       },
     },
     async (req, rep) => {
-      const { followedId } = req.params;
-      fastify.log.info(`get followed ${followedId}`);
-      const result = await instance.repo.profileRepo.selectFollowerProfiles(
-        BigInt(followedId)
-      );
+      try {
+        const { followedId } = req.params;
+        fastify.log.info(`get followed ${followedId}`);
+        const result = await instance.repo.profileRepo.selectFollowerProfiles(
+          BigInt(followedId)
+        );
 
-      if (!result) {
-        return rep.status(404).send({
-          statusCode: 404,
-          error: "Not Found",
-          message: "Profile not found",
-        });
+        if (!result) {
+          return rep.status(404).send({
+            statusCode: 404,
+            error: "Not Found",
+            message: "Profile not found",
+          });
+        }
+
+        return rep.status(200).send(
+          result.map((profile) => ({
+            id: Number(profile.id),
+            updatedAt: profile.updatedAt.toISOString(),
+            userName: profile.userName,
+            fullName: profile.fullName,
+            description: profile.description || undefined,
+            region: profile.region || undefined,
+            mainUrl: profile.mainUrl || undefined,
+            avatar: profile.avatar || undefined,
+          }))
+        );
+      } catch (e) {
+        fastify.log.error(`Get Followers Route Error: ${e}`);
+        return rep.status(500).send(Status500);
       }
-
-      return rep.status(200).send(
-        result.map((profile) => ({
-          id: Number(profile.id),
-          updatedAt: profile.updatedAt.toISOString(),
-          userName: profile.userName,
-          fullName: profile.fullName,
-          description: profile.description || undefined,
-          region: profile.region || undefined,
-          mainUrl: profile.mainUrl || undefined,
-          avatar: profile.avatar || undefined,
-        }))
-      );
     }
   );
 
@@ -238,23 +247,28 @@ const profile: FastifyPluginAsync = async function (fastify) {
       },
     },
     async (req, rep) => {
-      const { followerId, followedId } = req.body;
-      const result = await instance.repo.profileRepo.insertFollow(
-        BigInt(followerId),
-        BigInt(followedId)
-      );
+      try {
+        const { followerId, followedId } = req.body;
+        const result = await instance.repo.profileRepo.insertFollow(
+          BigInt(followerId),
+          BigInt(followedId)
+        );
 
-      if (!result) {
-        return rep.status(500).send({
-          statusCode: 500,
-          error: "Internal Server Error",
-          message: "Failed to insert follow",
+        if (!result) {
+          return rep.status(500).send({
+            statusCode: 500,
+            error: "Internal Server Error",
+            message: "Failed to insert follow",
+          });
+        }
+
+        return rep.status(200).send({
+          followId: Number(result.id),
         });
+      } catch (e) {
+        fastify.log.error(`Get Follow Route Error: ${e}`);
+        return rep.status(500).send(Status500);
       }
-
-      return rep.status(200).send({
-        followId: Number(result.id),
-      });
     }
   );
 };
