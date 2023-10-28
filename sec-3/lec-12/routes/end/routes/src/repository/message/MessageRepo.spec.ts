@@ -156,8 +156,65 @@ describe("MessageRepo", () => {
     const selectedResponderMessage =
       await repo.messageRepo.selectMessageResponses(respondedMessage.id);
     expect(selectedResponderMessage.length).toBe(1);
-    expect(selectedResponderMessage[0].id).toBe(responderMessage.id);
-    expect(selectedResponderMessage[0].body).toBe(responderBody);
-    expect(selectedResponderMessage[0].image).toEqual(responderImage);
+    expect(selectedResponderMessage[0].responder.id).toBe(responderMessage.id);
+    expect(selectedResponderMessage[0].responder.body).toBe(responderBody);
+    expect(selectedResponderMessage[0].responder.image).toEqual(responderImage);
+  });
+
+  it("creates a new broadcast message successfully", async () => {
+    const newBroadcaster = getNewProfile();
+    const broadcaster = await repo.profileRepo.insertProfile(
+      newBroadcaster.userName,
+      newBroadcaster.fullName,
+      newBroadcaster.description,
+      newBroadcaster.region,
+      newBroadcaster.mainUrl,
+      newBroadcaster.avatar
+    );
+    const newBroadcast = getNewProfile();
+    const broadcast = await repo.profileRepo.insertProfile(
+      newBroadcast.userName,
+      newBroadcast.fullName,
+      newBroadcast.description,
+      newBroadcast.region,
+      newBroadcast.mainUrl,
+      newBroadcast.avatar
+    );
+
+    const broadcastBody = faker.lorem.sentence();
+    const broadcastImage = Buffer.from(faker.image.image());
+    const broadcastMessage = await repo.messageRepo.insertMessage(
+      broadcast.id,
+      broadcastBody,
+      broadcastImage
+    );
+
+    const broadcasterAdditionalMsg = "I am broadcasting original message";
+    const broadcasterBody = faker.lorem.sentence();
+    const broadcasterImage = Buffer.from(faker.image.image());
+    const broadcasterMessage = await repo.messageRepo.insertMessage(
+      broadcaster.id,
+      broadcasterBody,
+      broadcasterImage,
+      undefined,
+      broadcastMessage.id,
+      broadcasterAdditionalMsg
+    );
+
+    const selectedBroadcasterMessages =
+      await repo.messageRepo.selectMessageBroadcasts(broadcastMessage.id);
+    expect(selectedBroadcasterMessages.length).toBe(1);
+    expect(selectedBroadcasterMessages[0].broadcaster.id).toBe(
+      broadcasterMessage.id
+    );
+    expect(selectedBroadcasterMessages[0].broadcaster.body).toBe(
+      broadcasterBody
+    );
+    expect(selectedBroadcasterMessages[0].broadcaster.image).toEqual(
+      broadcasterImage
+    );
+    expect(
+      selectedBroadcasterMessages[0].broadcaster.additionalMessage
+    ).toEqual(broadcasterAdditionalMsg);
   });
 });

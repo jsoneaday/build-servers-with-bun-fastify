@@ -39,14 +39,51 @@ export default class MessageRepo {
       await this.prisma.messageResponse.findMany({
         select: {
           responderMsg: true,
+          respondedMsg: true,
         },
         where: {
           respondedMsgId,
         },
       })
     )
-      .flatMap((response) => response.responderMsg)
-      .sort((a, b) => b.updatedAt.getTime() - a.updatedAt.getTime());
+      .flatMap((response) => ({
+        responder: response.responderMsg,
+        responded: response.respondedMsg,
+      }))
+      .sort(
+        (
+          { responder: responder_a, responded: responded_a },
+          { responder: responder_b, responded: responded_b }
+        ) => responder_b.updatedAt.getTime() - responder_a.updatedAt.getTime()
+      );
+  }
+
+  async selectMessageBroadcasts(broadcastMsgId: bigint) {
+    return (
+      await this.prisma.messageBroadcast.findMany({
+        select: {
+          broadcasterMsg: true,
+          broadcastMsg: true,
+          additionalMessage: true,
+        },
+        where: {
+          broadcastMsgId,
+        },
+      })
+    )
+      .flatMap((response) => ({
+        broadcaster: {
+          ...response.broadcasterMsg,
+          additionalMessage: response.additionalMessage,
+        },
+        broadcast: response.broadcastMsg,
+      }))
+      .sort(
+        (
+          { broadcaster: responder_a, broadcast: broadcast_a },
+          { broadcaster: responder_b, broadcast: broadcast_b }
+        ) => responder_b.updatedAt.getTime() - responder_a.updatedAt.getTime()
+      );
   }
 
   async insertMessage(
@@ -85,6 +122,7 @@ export default class MessageRepo {
           data: {
             broadcasterMsgId: newMessage.id,
             broadcastMsgId,
+            additionalMessage,
           },
         });
       }
