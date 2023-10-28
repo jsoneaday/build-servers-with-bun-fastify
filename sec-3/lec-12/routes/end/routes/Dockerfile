@@ -23,6 +23,5 @@ CMD curl -fsSL https://bun.sh/install | bash && \
     bun install --force && \    
     bun install -g prisma@5.5.2 && \    
     bun prisma generate && \
-    echo $DATABASE_URL && \
     bun prisma migrate deploy && \
     bun ./src/index.ts

@@ -74,7 +74,7 @@ const profile: FastifyPluginAsync = async function (fastify) {
           description: Type.Optional(Type.String()),
           region: Type.Optional(Type.String()),
           mainUrl: Type.Optional(Type.String()),
-          avatar: Type.Optional(Type.Any()),
+          avatar: Type.Optional(Type.String({ contentEncoding: "base64" })),
         }),
         response: {
           200: Type.Object({
@@ -85,28 +85,33 @@ const profile: FastifyPluginAsync = async function (fastify) {
       },
     },
     async (req, rep) => {
-      const { userName, fullName, description, region, mainUrl, avatar } =
-        req.body;
-      const result = await instance.repo.profileRepo.insertProfile(
-        userName,
-        fullName,
-        description,
-        region,
-        mainUrl,
-        avatar
-      );
+      try {
+        const { userName, fullName, description, region, mainUrl, avatar } =
+          req.body;
+        const result = await instance.repo.profileRepo.insertProfile(
+          userName,
+          fullName,
+          description,
+          region,
+          mainUrl,
+          avatar ? Buffer.from(avatar) : undefined
+        );
 
-      if (!result) {
-        return rep.status(500).send({
-          statusCode: 500,
-          error: "Internal Server Error",
-          message: "Failed to insert profile",
+        if (!result) {
+          return rep.status(500).send({
+            ...Status500,
+            message: "Failed to insert profile",
+          });
+        }
+
+        return rep.status(200).send({
+          id: Number(result.id),
         });
-      }
+      } catch (e) {
+        fastify.log.error(`Query Error: ${e}`);
 
-      return rep.status(200).send({
-        id: Number(result.id),
-      });
+        return rep.status(500).send(Status500);
+      }
     }
   );
 
@@ -127,7 +132,7 @@ const profile: FastifyPluginAsync = async function (fastify) {
               description: Type.Optional(Type.String()),
               region: Type.Optional(Type.String()),
               mainUrl: Type.Optional(Type.String()),
-              avatar: Type.Optional(Type.Any()),
+              avatar: Type.Optional(Type.String({ contentEncoding: "base64" })),
             })
           ),
           404: Status404Type,
@@ -157,7 +162,7 @@ const profile: FastifyPluginAsync = async function (fastify) {
           description: profile.description || undefined,
           region: profile.region || undefined,
           mainUrl: profile.mainUrl || undefined,
-          avatar: profile.avatar || undefined,
+          avatar: profile.avatar?.toString("base64"),
         }))
       );
     }
@@ -189,6 +194,7 @@ const profile: FastifyPluginAsync = async function (fastify) {
     },
     async (req, rep) => {
       const { followedId } = req.params;
+      fastify.log.info(`get followed ${followedId}`);
       const result = await instance.repo.profileRepo.selectFollowerProfiles(
         BigInt(followedId)
       );
