@@ -1,6 +1,11 @@
 import { Type, TypeBoxTypeProvider } from "@fastify/type-provider-typebox";
 import { FastifyInstance, FastifyPluginAsync } from "fastify";
-import { Status404Type, Status500, Status404 } from "../ResponseTypes";
+import {
+  Status404Type,
+  Status500,
+  Status404,
+  Status500Type,
+} from "../ResponseTypes";
 
 const messageRoute: FastifyPluginAsync = async function (
   fastify: FastifyInstance
@@ -56,7 +61,50 @@ const messageRoute: FastifyPluginAsync = async function (
           })
         );
       } catch (e) {
-        fastify.log.error("Failed to get followed messages", e);
+        instance.log.error(`Get Followed Messages Error: ${e}`);
+        return rep.status(500).send(Status500);
+      }
+    }
+  );
+
+  instance.post(
+    "/message",
+    {
+      schema: {
+        body: Type.Object({
+          authorId: Type.Integer(),
+          body: Type.String(),
+          image: Type.Optional(Type.Any()),
+        }),
+        response: {
+          200: Type.Object({
+            id: Type.Integer(),
+          }),
+          500: Status500Type,
+        },
+      },
+    },
+    async (req, rep) => {
+      try {
+        const { authorId, body, image } = req.body;
+        const result = await instance.repo.messageRepo.insertMessage(
+          BigInt(authorId),
+          body,
+          image
+        );
+
+        if (!result) {
+          return rep.status(500).send({
+            ...Status500,
+            message: "Failed to insert message",
+          });
+        }
+
+        return rep.status(200).send({
+          id: Number(result.id),
+        });
+      } catch (e) {
+        instance.log.error(`Create Message Route Error: ${e}`);
         return rep.status(500).send(Status500);
       }
     }

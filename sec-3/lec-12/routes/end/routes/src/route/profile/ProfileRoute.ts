@@ -36,7 +36,7 @@ const profile: FastifyPluginAsync = async function (fastify) {
     async (req, rep) => {
       try {
         const userName = req.params.userName.split("=")[1];
-        fastify.log.info(`get profile userName: ${userName}`);
+        instance.log.info(`get profile userName: ${userName}`);
         const result = await instance.repo.profileRepo.selectProfile(userName);
 
         if (!result) {
@@ -57,7 +57,7 @@ const profile: FastifyPluginAsync = async function (fastify) {
           avatar: result.avatar?.toString("base64") || undefined,
         });
       } catch (e) {
-        fastify.log.error(`Get Profile Route Error: ${e}`);
+        instance.log.error(`Get Profile Route Error: ${e}`);
         return rep.status(500).send(Status500);
       }
     }
@@ -107,7 +107,7 @@ const profile: FastifyPluginAsync = async function (fastify) {
           id: Number(result.id),
         });
       } catch (e) {
-        fastify.log.error(`Insert Profile Route Error: ${e}`);
+        instance.log.error(`Insert Profile Route Error: ${e}`);
         return rep.status(500).send(Status500);
       }
     }
@@ -165,7 +165,7 @@ const profile: FastifyPluginAsync = async function (fastify) {
           }))
         );
       } catch (e) {
-        fastify.log.error(`Get Followed Route Error: ${e}`);
+        instance.log.error(`Get Followed Route Error: ${e}`);
         return rep.status(500).send(Status500);
       }
     }
@@ -198,7 +198,7 @@ const profile: FastifyPluginAsync = async function (fastify) {
     async (req, rep) => {
       try {
         const { followedId } = req.params;
-        fastify.log.info(`get followed ${followedId}`);
+        instance.log.info(`get followed ${followedId}`);
         const result = await instance.repo.profileRepo.selectFollowerProfiles(
           BigInt(followedId)
         );
@@ -224,7 +224,7 @@ const profile: FastifyPluginAsync = async function (fastify) {
           }))
         );
       } catch (e) {
-        fastify.log.error(`Get Followers Route Error: ${e}`);
+        instance.log.error(`Get Followers Route Error: ${e}`);
         return rep.status(500).send(Status500);
       }
     }
@@ -266,7 +266,7 @@ const profile: FastifyPluginAsync = async function (fastify) {
           followId: Number(result.id),
         });
       } catch (e) {
-        fastify.log.error(`Get Follow Route Error: ${e}`);
+        instance.log.error(`Get Follow Route Error: ${e}`);
         return rep.status(500).send(Status500);
       }
     }
