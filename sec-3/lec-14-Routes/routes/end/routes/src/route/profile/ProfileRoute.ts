@@ -35,7 +35,7 @@ const profile: FastifyPluginAsync = async function (fastify) {
     },
     async (req, rep) => {
       try {
-        const userName = req.params.userName.split("=")[1];
+        const userName = req.params.userName;
         instance.log.info(`get profile userName: ${userName}`);
         const result = await instance.repo.profileRepo.selectProfile(userName);
 
