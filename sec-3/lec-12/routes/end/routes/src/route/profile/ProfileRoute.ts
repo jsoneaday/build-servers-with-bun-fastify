@@ -58,7 +58,6 @@ const profile: FastifyPluginAsync = async function (fastify) {
         });
       } catch (e) {
         fastify.log.error(`Query Error: ${e}`);
-
         return rep.status(500).send(Status500);
       }
     }
