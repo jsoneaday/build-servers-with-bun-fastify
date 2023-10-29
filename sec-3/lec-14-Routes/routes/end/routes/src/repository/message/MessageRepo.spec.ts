@@ -1,7 +1,5 @@
 import { expect, it, describe } from "bun:test";
-import ProfileRepo from "../profile/ProfileRepo";
 import Repository from "../Repository";
-import MessageRepo from "./MessageRepo";
 import { getNewProfile } from "../../__tests__/fixtures";
 import { faker } from "@faker-js/faker";
 

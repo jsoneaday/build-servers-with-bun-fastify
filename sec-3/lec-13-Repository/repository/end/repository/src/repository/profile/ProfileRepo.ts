@@ -46,7 +46,7 @@ export default class ProfileRepo {
   async insertProfile(
     userName: string,
     fullName: string,
-    description: string,
+    description?: string,
     region?: string,
     mainUrl?: string,
     avatar?: Buffer

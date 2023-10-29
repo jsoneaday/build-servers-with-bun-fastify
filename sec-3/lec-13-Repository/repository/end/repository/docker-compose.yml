@@ -2,6 +2,7 @@ version: "3.4"
 
 services:
   db:
+    platform: linux/amd64
     image: postgres:14.0
     volumes:
       - ./dbdata:/var/lib/postgresql/data
@@ -10,20 +11,16 @@ services:
       POSTGRES_USER: fastserver
       POSTGRES_PASSWORD: fastserver
     ports:
-      - 5434:5432
+      - 5432:5432
     restart: always
   webserver:
+    platform: linux/amd64
     image: fastserver
     build:
       context: .
       dockerfile: Dockerfile
     environment:
-      - POSTGRES_HOST=db
-      - POSTGRES_PORT=5434
-      - POSTGRES_DB=fastserver
-      - POSTGRES_USER=fastserver
-      - POSTGRES_PASSWORD=fastserver
-      - DATABASE_URL="postgresql://fastserver:fastserver@localhost:5434/fastserver"
+      - DATABASE_URL=postgresql://fastserver:fastserver@db:5432/fastserver
       - PORT=4000
       - HOST=0.0.0.0
     ports:
