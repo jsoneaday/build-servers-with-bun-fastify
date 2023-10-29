@@ -159,198 +159,216 @@ describe("ProfileRepo", () => {
     expect(profile.messages[0].body).toBe("123");
   });
 
-  // it("creates a valid profile with messagaes", async () => {
-  //   const { userName, fullName, description, region, mainUrl, avatar } =
-  //     getNewProfile();
-  //   const messages = [
-  //     { body: faker.lorem.sentence(1) },
-  //     { body: faker.lorem.sentence(1) },
-  //     { body: faker.lorem.sentence(1) },
-  //   ];
-  //   const profile = await repo.profileRepo.insertProfileWithMessages(
-  //     messages,
-  //     userName,
-  //     fullName,
-  //     description,
-  //     region,
-  //     mainUrl,
-  //     avatar
-  //   );
-  //   expect(profile.userName).toBe(userName);
-  //   expect(profile.fullName).toBe(fullName);
-  //   expect(profile.description).toBe(description);
-  //   expect(profile.region).toBe(region);
-  //   expect(profile.mainUrl).toBe(mainUrl);
-  //   expect(profile.avatar).toEqual(avatar);
+  it("create message relation while creating profile", async () => {
+    const {
+      userName: userNameA,
+      fullName: fullNameA,
+      description: descriptionA,
+      region: regionA,
+      mainUrl: mainUrlA,
+      avatar: avatarA,
+    } = getNewProfile();
+    let profileA = await prisma.profile.create({
+      data: {
+        userName: userNameA,
+        fullName: fullNameA,
+        description: descriptionA,
+        region: regionA,
+        mainUrl: mainUrlA,
+        avatar: avatarA,
+      },
+    });
+    const {
+      userName: userNameB,
+      fullName: fullNameB,
+      description: descriptionB,
+      region: regionB,
+      mainUrl: mainUrlB,
+      avatar: avatarB,
+    } = getNewProfile();
+    let profileB = await prisma.profile.create({
+      data: {
+        userName: userNameB,
+        fullName: fullNameB,
+        description: descriptionB,
+        region: regionB,
+        mainUrl: mainUrlB,
+        avatar: avatarB,
+      },
+      include: {
+        messages: true,
+      },
+    });
 
-  //   const profileMessages = await repo.messageRepo.selectMessagesByAuthorId(
-  //     profile.id
-  //   );
-  //   for (let i = 0; i < profileMessages.length; i++) {
-  //     expect(profileMessages[i].body).toBe(messages[i].body);
-  //   }
-  // });
+    let message = await prisma.message.create({
+      data: {
+        body: "123",
+        authorId: profileA.id,
+      },
+    });
 
-  // it("selects a valid profile", async () => {
-  //   const { userName, fullName, description, region, mainUrl, avatar } =
-  //     getNewProfile();
+    expect(message.authorId).toBe(profileA.id);
 
-  //   await repo.profileRepo.insertProfile(
-  //     userName,
-  //     fullName,
-  //     description,
-  //     region,
-  //     mainUrl,
-  //     avatar
-  //   );
+    profileB = await prisma.profile.update({
+      where: { id: profileB.id },
+      data: {
+        messages: {
+          connect: [{ id: message.id }],
+        },
+      },
+      include: {
+        messages: true,
+      },
+    });
+    expect(profileB.messages[0].id).toBe(message.id);
 
-  //   const selectedProfile = await repo.profileRepo.selectProfile(userName);
-  //   expect(selectedProfile?.userName).toBe(userName);
-  //   expect(selectedProfile?.fullName).toBe(fullName);
-  //   expect(selectedProfile?.description).toBe(description);
-  //   expect(selectedProfile?.region).toBe(region);
-  //   expect(selectedProfile?.mainUrl).toBe(mainUrl);
-  //   expect(selectedProfile?.avatar).toEqual(avatar);
-  // });
+    let newProfileA = await prisma.profile.findFirst({
+      where: { id: profileA.id },
+      include: {
+        messages: true,
+      },
+    });
 
-  // it("selects profiles a user is a follower of", async () => {
-  //   const { userName, fullName, description, region, mainUrl, avatar } =
-  //     getNewProfile();
+    expect(newProfileA?.messages.length).toBe(0);
+  });
 
-  //   // first create a profile that will be the follower
-  //   const followerProfile = await repo.profileRepo.insertProfile(
-  //     userName,
-  //     fullName,
-  //     description,
-  //     region,
-  //     mainUrl,
-  //     avatar
-  //   );
+  it("select only userName and fullName from profile", async () => {
+    const {
+      userName: userNameA,
+      fullName: fullNameA,
+      description: descriptionA,
+      region: regionA,
+      mainUrl: mainUrlA,
+      avatar: avatarA,
+    } = getNewProfile();
+    let profileA = await prisma.profile.create({
+      data: {
+        userName: userNameA,
+        fullName: fullNameA,
+        description: descriptionA,
+        region: regionA,
+        mainUrl: mainUrlA,
+        avatar: avatarA,
+      },
+    });
+    const {
+      userName: userNameB,
+      fullName: fullNameB,
+      description: descriptionB,
+      region: regionB,
+      mainUrl: mainUrlB,
+      avatar: avatarB,
+    } = getNewProfile();
+    let profileB = await prisma.profile.create({
+      data: {
+        userName: userNameB,
+        fullName: fullNameB,
+        description: descriptionB,
+        region: regionB,
+        mainUrl: mainUrlB,
+        avatar: avatarB,
+      },
+      include: {
+        messages: true,
+      },
+    });
 
-  //   // create multiple profiles to be followed
-  //   const size = 4;
-  //   let listOfFollowedProfiles: {
-  //     id: bigint;
-  //     createdAt: Date;
-  //     updatedAt: Date;
-  //     userName: string;
-  //     fullName: string;
-  //     description: string | null;
-  //     region: string | null;
-  //     mainUrl: string | null;
-  //     avatar: Buffer | null;
-  //   }[] = new Array(size);
-  //   for (let i = 0; i < size; i++) {
-  //     const userName = faker.internet.userName();
-  //     const fullName = faker.person.fullName();
-  //     const description = faker.lorem.sentences(2);
-  //     const region = faker.location.country();
-  //     const mainUrl = faker.internet.url();
-  //     const avatar = Buffer.from(faker.image.avatar());
+    const message = await prisma.message.create({
+      data: {
+        body: "123",
+        authorId: profileA.id,
+      },
+    });
 
-  //     const followedProfile = await repo.profileRepo.insertProfile(
-  //       userName,
-  //       fullName,
-  //       description,
-  //       region,
-  //       mainUrl,
-  //       avatar
-  //     );
-  //     listOfFollowedProfiles[i] = followedProfile;
+    let selectedProfile = await prisma.profile.findFirstOrThrow({
+      select: {
+        userName: true,
+        fullName: true,
+        messages: true,
+      },
+      where: {
+        id: profileA.id,
+      },
+      // include: {
+      //   messages: true,
+      // },
+    });
 
-  //     await repo.profileRepo.insertFollow(
-  //       followerProfile.id,
-  //       followedProfile.id
-  //     );
-  //   }
+    expect(selectedProfile.userName).toBe(profileA.userName);
+  });
 
-  //   const followedProfiles = await repo.profileRepo.selectFollowedProfiles(
-  //     followerProfile.id
-  //   );
+  it("select multiple profiles", async () => {
+    const {
+      userName: userNameA,
+      fullName: fullNameA,
+      description: descriptionA,
+      region: regionA,
+      mainUrl: mainUrlA,
+      avatar: avatarA,
+    } = getNewProfile();
+    let profileA = await prisma.profile.create({
+      data: {
+        userName: userNameA,
+        fullName: fullNameA,
+        description: descriptionA,
+        region: regionA,
+        mainUrl: mainUrlA,
+        avatar: avatarA,
+      },
+    });
+    const {
+      userName: userNameB,
+      fullName: fullNameB,
+      description: descriptionB,
+      region: regionB,
+      mainUrl: mainUrlB,
+      avatar: avatarB,
+    } = getNewProfile();
+    let profileB = await prisma.profile.create({
+      data: {
+        userName: userNameB,
+        fullName: fullNameB,
+        description: descriptionB,
+        region: regionB,
+        mainUrl: mainUrlB,
+        avatar: avatarB,
+      },
+      include: {
+        messages: true,
+      },
+    });
 
-  //   listOfFollowedProfiles = listOfFollowedProfiles.reverse();
-  //   for (let i = 0; i < followedProfiles.length; i++) {
-  //     const dbFollowedProfile = followedProfiles[i];
-  //     const listedFollowedProfile = listOfFollowedProfiles[i];
+    const message = await prisma.message.create({
+      data: {
+        body: "123",
+        authorId: profileA.id,
+      },
+    });
 
-  //     expect(dbFollowedProfile.userName).toBe(listedFollowedProfile.userName);
-  //     expect(dbFollowedProfile.fullName).toBe(listedFollowedProfile.fullName);
-  //     expect(dbFollowedProfile.description).toBe(
-  //       listedFollowedProfile.description
-  //     );
-  //     expect(dbFollowedProfile.region).toBe(listedFollowedProfile.region);
-  //     expect(dbFollowedProfile.mainUrl).toBe(listedFollowedProfile.mainUrl);
-  //     expect(dbFollowedProfile.avatar).toEqual(listedFollowedProfile.avatar);
-  //   }
-  // });
+    let selectedProfiles = await prisma.profile.findMany({
+      where: {
+        messages: {
+          some: {
+            id: {
+              in: [BigInt(13425435), BigInt(23245435), message.id],
+            },
+          },
+        },
+        // OR: [
+        //   {
+        //     userName: {
+        //       endsWith: profileA.userName.substring(2),
+        //     },
+        //   },
+        //   {
+        //     userName: {
+        //       contains: profileB.userName.substring(2),
+        //     },
+        //   },
+        // ],
+      },
+    });
 
-  // it("select profiles that are following a followed", async () => {
-  //   const { userName, fullName, description, region, mainUrl, avatar } =
-  //     getNewProfile();
-
-  //   const followedProfile = await repo.profileRepo.insertProfile(
-  //     userName,
-  //     fullName,
-  //     description,
-  //     region,
-  //     mainUrl,
-  //     avatar
-  //   );
-
-  //   // create multiple profiles to be followed
-  //   const size = 4;
-  //   let listOfFollowerProfiles: {
-  //     id: bigint;
-  //     createdAt: Date;
-  //     updatedAt: Date;
-  //     userName: string;
-  //     fullName: string;
-  //     description: string | null;
-  //     region: string | null;
-  //     mainUrl: string | null;
-  //     avatar: Buffer | null;
-  //   }[] = new Array(size);
-  //   for (let i = 0; i < size; i++) {
-  //     const userName = faker.internet.userName();
-  //     const fullName = faker.person.fullName();
-  //     const description = faker.lorem.sentences(2);
-  //     const region = faker.location.country();
-  //     const mainUrl = faker.internet.url();
-  //     const avatar = Buffer.from(faker.image.avatar());
-
-  //     const followerProfile = await repo.profileRepo.insertProfile(
-  //       userName,
-  //       fullName,
-  //       description,
-  //       region,
-  //       mainUrl,
-  //       avatar
-  //     );
-  //     listOfFollowerProfiles[i] = followerProfile;
-
-  //     await repo.profileRepo.insertFollow(
-  //       followerProfile.id,
-  //       followedProfile.id
-  //     );
-  //   }
-
-  //   const followerProfiles = await repo.profileRepo.selectFollowerProfiles(
-  //     followedProfile.id
-  //   );
-
-  //   listOfFollowerProfiles = listOfFollowerProfiles.reverse();
-  //   for (let i = 0; i < followerProfiles.length; i++) {
-  //     const dbFollowerProfile = followerProfiles[i];
-  //     const listedFollowerProfile = listOfFollowerProfiles[i];
-
-  //     expect(dbFollowerProfile.userName).toBe(listedFollowerProfile.userName);
-  //     expect(dbFollowerProfile.fullName).toBe(listedFollowerProfile.fullName);
-  //     expect(dbFollowerProfile.description).toBe(
-  //       listedFollowerProfile.description
-  //     );
-  //     expect(dbFollowerProfile.region).toBe(listedFollowerProfile.region);
-  //     expect(dbFollowerProfile.mainUrl).toBe(listedFollowerProfile.mainUrl);
-  //     expect(dbFollowerProfile.avatar).toEqual(listedFollowerProfile.avatar);
-  //   }
-  // });
+    expect(selectedProfiles.length).toBe(1);
+  });
 });
