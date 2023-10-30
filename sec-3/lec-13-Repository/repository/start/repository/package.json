@@ -1,0 +1,21 @@
+{
+  "name": "repository",
+  "module": "index.ts",
+  "type": "module",
+  "scripts": {
+    "dev": "bun --hot ./src/index.ts"
+  },
+  "devDependencies": {
+    "@faker-js/faker": "^8.2.0",
+    "@types/node": "^20.8.2",
+    "bun-types": "latest"
+  },
+  "peerDependencies": {
+    "typescript": "^5.0.0"
+  },
+  "dependencies": {
+    "@prisma/client": "^5.5.2",
+    "fastify": "^4.23.2",
+    "fastify-plugin": "^4.5.1"
+  }
+}
