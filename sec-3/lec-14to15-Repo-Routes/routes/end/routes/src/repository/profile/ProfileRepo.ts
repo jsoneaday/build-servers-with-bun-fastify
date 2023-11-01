@@ -1,20 +1,17 @@
 import { PrismaClient } from "@prisma/client";
 
 export default class ProfileRepo {
-  constructor(private readonly prisma: PrismaClient) {}
+  constructor(private readonly client: PrismaClient) {}
 
   async selectProfile(userName: string) {
-    return await this.prisma.profile.findUnique({
-      where: {
-        userName,
-      },
+    return await this.client.profile.findUnique({
+      where: { userName },
     });
   }
 
-  /// Select the profiles that this user has followed
-  async selectFollowedProfiles(followerId: bigint) {
+  async selectFollowedProfile(followerId: bigint) {
     return (
-      await this.prisma.follow.findMany({
+      await this.client.follow.findMany({
         select: {
           followed: true,
         },
@@ -23,14 +20,15 @@ export default class ProfileRepo {
         },
       })
     )
-      .flatMap((follow) => follow.followed)
+      .flatMap((item) => {
+        return item.followed;
+      })
       .sort((a, b) => b.updatedAt.getTime() - a.updatedAt.getTime());
   }
 
-  /// select profiles that are followers of this user
-  async selectFollowerProfiles(followedId: bigint) {
+  async selectFollowerProfile(followedId: bigint) {
     return (
-      await this.prisma.follow.findMany({
+      await this.client.follow.findMany({
         select: {
           follower: true,
         },
@@ -39,7 +37,9 @@ export default class ProfileRepo {
         },
       })
     )
-      .flatMap((follow) => follow.follower)
+      .flatMap((item) => {
+        return item.follower;
+      })
       .sort((a, b) => b.updatedAt.getTime() - a.updatedAt.getTime());
   }
 
@@ -51,7 +51,7 @@ export default class ProfileRepo {
     mainUrl?: string,
     avatar?: Buffer
   ) {
-    return await this.prisma.profile.create({
+    return await this.client.profile.create({
       data: {
         userName,
         fullName,
@@ -64,7 +64,7 @@ export default class ProfileRepo {
   }
 
   async insertFollow(followerId: bigint, followedId: bigint) {
-    return await this.prisma.follow.create({
+    return await this.client.follow.create({
       data: {
         followerId,
         followedId,

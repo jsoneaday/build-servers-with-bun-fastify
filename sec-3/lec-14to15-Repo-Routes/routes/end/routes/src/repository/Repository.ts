@@ -8,17 +8,17 @@ export enum SortOrder {
 }
 
 export default class Repository {
-  private readonly prisma: PrismaClient;
+  private readonly client: PrismaClient;
   readonly profileRepo: ProfileRepo;
   readonly messageRepo: MessageRepo;
 
   constructor() {
-    this.prisma = new PrismaClient();
-    this.profileRepo = new ProfileRepo(this.prisma);
-    this.messageRepo = new MessageRepo(this.prisma);
+    this.client = new PrismaClient();
+    this.profileRepo = new ProfileRepo(this.client);
+    this.messageRepo = new MessageRepo(this.client);
   }
 
   async close() {
-    await this.prisma.$disconnect();
+    await this.client.$disconnect();
   }
 }

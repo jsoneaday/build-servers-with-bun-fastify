@@ -2,11 +2,11 @@ import { PrismaClient } from "@prisma/client";
 import { SortOrder } from "../Repository";
 
 export default class MessageRepo {
-  constructor(private readonly prisma: PrismaClient) {}
+  constructor(private readonly client: PrismaClient) {}
 
-  async selectMessagesOfFollowed(followerId: bigint) {
+  async selectMessagesFromFollowed(followerId: bigint) {
     return (
-      await this.prisma.follow.findMany({
+      await this.client.follow.findMany({
         select: {
           followed: {
             select: {
@@ -19,12 +19,14 @@ export default class MessageRepo {
         },
       })
     )
-      .flatMap((follow) => follow.followed.messages)
+      .flatMap((item) => {
+        return item.followed.messages;
+      })
       .sort((a, b) => b.updatedAt.getTime() - a.updatedAt.getTime());
   }
 
-  async selectMessagesByAuthorId(authorId: bigint) {
-    return await this.prisma.message.findMany({
+  async selectedMessagesByAuthorId(authorId: bigint) {
+    return await this.client.message.findMany({
       where: {
         authorId,
       },
@@ -34,9 +36,9 @@ export default class MessageRepo {
     });
   }
 
-  async selectMessageResponses(respondedMsgId: bigint) {
+  async selectMessagesResponses(respondedMsgId: bigint) {
     return (
-      await this.prisma.messageResponse.findMany({
+      await this.client.messageResponse.findMany({
         select: {
           responderMsg: true,
           respondedMsg: true,
@@ -45,22 +47,17 @@ export default class MessageRepo {
           respondedMsgId,
         },
       })
-    )
-      .flatMap((response) => ({
-        responder: response.responderMsg,
-        responded: response.respondedMsg,
-      }))
-      .sort(
-        (
-          { responder: responder_a, responded: responded_a },
-          { responder: responder_b, responded: responded_b }
-        ) => responder_b.updatedAt.getTime() - responder_a.updatedAt.getTime()
-      );
+    ).sort(
+      (
+        { responderMsg: responder_a, respondedMsg: responded_a },
+        { responderMsg: responder_b, respondedMsg: responded_b }
+      ) => responder_b.updatedAt.getTime() - responder_a.updatedAt.getTime()
+    );
   }
 
   async selectMessageBroadcasts(broadcastMsgId: bigint) {
     return (
-      await this.prisma.messageBroadcast.findMany({
+      await this.client.messageBroadcast.findMany({
         select: {
           broadcasterMsg: true,
           broadcastMsg: true,
@@ -70,20 +67,12 @@ export default class MessageRepo {
           broadcastMsgId,
         },
       })
-    )
-      .flatMap((response) => ({
-        broadcaster: {
-          ...response.broadcasterMsg,
-          additionalMessage: response.additionalMessage,
-        },
-        broadcast: response.broadcastMsg,
-      }))
-      .sort(
-        (
-          { broadcaster: responder_a, broadcast: broadcast_a },
-          { broadcaster: responder_b, broadcast: broadcast_b }
-        ) => responder_b.updatedAt.getTime() - responder_a.updatedAt.getTime()
-      );
+    ).sort(
+      (
+        { broadcasterMsg: broadcaster_a, broadcastMsg: broadcast_a },
+        { broadcasterMsg: broadcaster_b, broadcastMsg: broadcast_b }
+      ) => broadcaster_b.updatedAt.getTime() - broadcaster_a.updatedAt.getTime()
+    );
   }
 
   async insertMessage(
@@ -95,13 +84,17 @@ export default class MessageRepo {
     additionalMessage?: string
   ) {
     if (respondedMsgId && broadcastMsgId) {
-      throw new Error("Cannot respond and broadcast at the same time");
+      throw new Error(
+        "respondedMsgId and broadcastMsgId cannot both have a value"
+      );
     }
     if (!broadcastMsgId && additionalMessage) {
-      throw new Error("Cannot add additional message without broadcast");
+      throw new Error(
+        "additionalMessage cannot exist when broadcastMsgId is null"
+      );
     }
 
-    return await this.prisma.$transaction(async (tx) => {
+    return await this.client.$transaction(async (tx) => {
       const newMessage = await tx.message.create({
         data: {
           authorId,

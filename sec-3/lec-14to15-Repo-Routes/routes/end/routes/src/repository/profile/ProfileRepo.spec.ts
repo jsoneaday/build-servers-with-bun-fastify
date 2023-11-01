@@ -26,7 +26,7 @@ describe("ProfileRepo", () => {
     expect(profile.avatar).toEqual(avatar);
   });
 
-  it("selects a valid profile", async () => {
+  it("create profile and select it", async () => {
     const { userName, fullName, description, region, mainUrl, avatar } =
       getNewProfile();
 
@@ -40,6 +40,7 @@ describe("ProfileRepo", () => {
     );
 
     const selectedProfile = await repo.profileRepo.selectProfile(userName);
+
     expect(selectedProfile?.userName).toBe(userName);
     expect(selectedProfile?.fullName).toBe(fullName);
     expect(selectedProfile?.description).toBe(description);
@@ -48,12 +49,11 @@ describe("ProfileRepo", () => {
     expect(selectedProfile?.avatar).toEqual(avatar);
   });
 
-  it("selects profiles a user is a follower of", async () => {
+  it("get followed from follower", async () => {
     const { userName, fullName, description, region, mainUrl, avatar } =
       getNewProfile();
 
-    // first create a profile that will be the follower
-    const followerProfile = await repo.profileRepo.insertProfile(
+    const follower = await repo.profileRepo.insertProfile(
       userName,
       fullName,
       description,
@@ -62,12 +62,9 @@ describe("ProfileRepo", () => {
       avatar
     );
 
-    // create multiple profiles to be followed
     const size = 4;
-    let listOfFollowedProfiles: {
+    let followedList: {
       id: bigint;
-      createdAt: Date;
-      updatedAt: Date;
       userName: string;
       fullName: string;
       description: string | null;
@@ -76,14 +73,9 @@ describe("ProfileRepo", () => {
       avatar: Buffer | null;
     }[] = new Array(size);
     for (let i = 0; i < size; i++) {
-      const userName = faker.internet.userName();
-      const fullName = faker.person.fullName();
-      const description = faker.lorem.sentences(2);
-      const region = faker.location.country();
-      const mainUrl = faker.internet.url();
-      const avatar = Buffer.from(faker.image.avatar());
-
-      const followedProfile = await repo.profileRepo.insertProfile(
+      const { userName, fullName, description, region, mainUrl, avatar } =
+        getNewProfile();
+      const followed = await repo.profileRepo.insertProfile(
         userName,
         fullName,
         description,
@@ -91,35 +83,24 @@ describe("ProfileRepo", () => {
         mainUrl,
         avatar
       );
-      listOfFollowedProfiles[i] = followedProfile;
+      followedList[i] = followed;
 
-      await repo.profileRepo.insertFollow(
-        followerProfile.id,
-        followedProfile.id
-      );
+      await repo.profileRepo.insertFollow(follower.id, followed.id);
     }
 
-    const followedProfiles = await repo.profileRepo.selectFollowedProfiles(
-      followerProfile.id
+    const followedProfiles = await repo.profileRepo.selectFollowedProfile(
+      follower.id
     );
-
-    listOfFollowedProfiles = listOfFollowedProfiles.reverse();
+    followedList.reverse();
     for (let i = 0; i < followedProfiles.length; i++) {
-      const dbFollowedProfile = followedProfiles[i];
-      const listedFollowedProfile = listOfFollowedProfiles[i];
-
-      expect(dbFollowedProfile.userName).toBe(listedFollowedProfile.userName);
-      expect(dbFollowedProfile.fullName).toBe(listedFollowedProfile.fullName);
-      expect(dbFollowedProfile.description).toBe(
-        listedFollowedProfile.description
-      );
-      expect(dbFollowedProfile.region).toBe(listedFollowedProfile.region);
-      expect(dbFollowedProfile.mainUrl).toBe(listedFollowedProfile.mainUrl);
-      expect(dbFollowedProfile.avatar).toEqual(listedFollowedProfile.avatar);
+      const currentFollowed = followedProfiles[i];
+      expect(currentFollowed.id).toBe(followedList[i].id);
+      expect(currentFollowed.userName).toBe(followedList[i].userName);
+      expect(currentFollowed.fullName).toBe(followedList[i].fullName);
     }
   });
 
-  it("select profiles that are following a followed", async () => {
+  it("get followers from followed", async () => {
     const { userName, fullName, description, region, mainUrl, avatar } =
       getNewProfile();
 
@@ -146,12 +127,8 @@ describe("ProfileRepo", () => {
       avatar: Buffer | null;
     }[] = new Array(size);
     for (let i = 0; i < size; i++) {
-      const userName = faker.internet.userName();
-      const fullName = faker.person.fullName();
-      const description = faker.lorem.sentences(2);
-      const region = faker.location.country();
-      const mainUrl = faker.internet.url();
-      const avatar = Buffer.from(faker.image.avatar());
+      const { userName, fullName, description, region, mainUrl, avatar } =
+        getNewProfile();
 
       const followerProfile = await repo.profileRepo.insertProfile(
         userName,
@@ -169,11 +146,11 @@ describe("ProfileRepo", () => {
       );
     }
 
-    const followerProfiles = await repo.profileRepo.selectFollowerProfiles(
+    const followerProfiles = await repo.profileRepo.selectFollowerProfile(
       followedProfile.id
     );
 
-    listOfFollowerProfiles = listOfFollowerProfiles.reverse();
+    listOfFollowerProfiles.reverse();
     for (let i = 0; i < followerProfiles.length; i++) {
       const dbFollowerProfile = followerProfiles[i];
       const listedFollowerProfile = listOfFollowerProfiles[i];

@@ -37,9 +37,10 @@ const messageRoute: FastifyPluginAsync = async function (
     async (req, rep) => {
       try {
         const { followerId } = req.params;
-        const result = await instance.repo.messageRepo.selectMessagesOfFollowed(
-          BigInt(followerId)
-        );
+        const result =
+          await instance.repo.messageRepo.selectMessagesFromFollowed(
+            BigInt(followerId)
+          );
 
         if (result.length === 0) {
           return rep.status(404).send({
@@ -92,9 +93,10 @@ const messageRoute: FastifyPluginAsync = async function (
     async (req, rep) => {
       try {
         const { authorId } = req.params;
-        const result = await instance.repo.messageRepo.selectMessagesByAuthorId(
-          BigInt(authorId)
-        );
+        const result =
+          await instance.repo.messageRepo.selectedMessagesByAuthorId(
+            BigInt(authorId)
+          );
 
         if (result.length === 0) {
           return rep.status(404).send({
@@ -147,7 +149,7 @@ const messageRoute: FastifyPluginAsync = async function (
     async (req, rep) => {
       try {
         const { respondedMsgId } = req.params;
-        const result = await instance.repo.messageRepo.selectMessageResponses(
+        const result = await instance.repo.messageRepo.selectMessagesResponses(
           BigInt(respondedMsgId)
         );
 
@@ -161,12 +163,12 @@ const messageRoute: FastifyPluginAsync = async function (
         return rep.status(200).send(
           result.map((msg) => {
             return {
-              id: Number(msg.responder.id.toString()),
-              updatedAt: msg.responder.updatedAt.toISOString(),
-              authorId: Number(msg.responder.authorId.toString()),
-              body: msg.responder.body,
-              likes: msg.responder.likes,
-              image: msg.responder.image,
+              id: Number(msg.responderMsg.id.toString()),
+              updatedAt: msg.responderMsg.updatedAt.toISOString(),
+              authorId: Number(msg.responderMsg.authorId.toString()),
+              body: msg.responderMsg.body,
+              likes: msg.responderMsg.likes,
+              image: msg.responderMsg.image,
             };
           })
         );
@@ -216,12 +218,12 @@ const messageRoute: FastifyPluginAsync = async function (
         return rep.status(200).send(
           result.map((msg) => {
             return {
-              id: Number(msg.broadcaster.id.toString()),
-              updatedAt: msg.broadcaster.updatedAt.toISOString(),
-              authorId: Number(msg.broadcaster.authorId.toString()),
-              body: msg.broadcaster.body,
-              likes: msg.broadcaster.likes,
-              image: msg.broadcaster.image,
+              id: Number(msg.broadcasterMsg.id.toString()),
+              updatedAt: msg.broadcasterMsg.updatedAt.toISOString(),
+              authorId: Number(msg.broadcasterMsg.authorId.toString()),
+              body: msg.broadcasterMsg.body,
+              likes: msg.broadcasterMsg.likes,
+              image: msg.broadcasterMsg.image,
             };
           })
         );

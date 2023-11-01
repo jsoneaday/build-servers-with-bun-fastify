@@ -140,7 +140,7 @@ const profile: FastifyPluginAsync = async function (fastify) {
     async (req, rep) => {
       try {
         const { followerId } = req.params;
-        const result = await instance.repo.profileRepo.selectFollowedProfiles(
+        const result = await instance.repo.profileRepo.selectFollowedProfile(
           BigInt(followerId)
         );
 
@@ -199,7 +199,7 @@ const profile: FastifyPluginAsync = async function (fastify) {
       try {
         const { followedId } = req.params;
         instance.log.info(`get followed ${followedId}`);
-        const result = await instance.repo.profileRepo.selectFollowerProfiles(
+        const result = await instance.repo.profileRepo.selectFollowerProfile(
           BigInt(followedId)
         );
 

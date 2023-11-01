@@ -1,13 +1,9 @@
-import app from "./app";
+import Fastify from "fastify";
 import Repository from "./repository/Repository";
 
-const server = app((fastify) => {
-  fastify.decorate("repo", new Repository());
+const server = Fastify({ logger: true });
 
-  fastify.register(import("./route/profile/ProfileRoute"));
-
-  fastify.register(import("./route/message/MessageRoute"));
-});
+server.decorate("repo", new Repository());
 
 server.listen(
   { port: Number(process.env.PORT), host: process.env.HOST },
