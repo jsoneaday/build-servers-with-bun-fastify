@@ -1,14 +1,4 @@
 import { faker } from "@faker-js/faker";
-import Repository from "../repository/Repository";
-import app from "../app";
-
-export function fastifyInstance() {
-  return app((fastify) => {
-    fastify.decorate("repo", new Repository());
-    fastify.register(import("../route/profile/ProfileRoute"));
-    console.log("finished registrations");
-  });
-}
 
 export function getNewProfile() {
   return {
