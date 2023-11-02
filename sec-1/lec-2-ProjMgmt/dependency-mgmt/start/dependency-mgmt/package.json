@@ -1,5 +1,5 @@
 {
-  "name": "proj-init",
+  "name": "dependency-mgmt",
   "module": "index.ts",
   "type": "module",
   "devDependencies": {

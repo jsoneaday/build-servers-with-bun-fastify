@@ -1,4 +1,4 @@
-# proj-init
+# bundler
 
 To install dependencies:
 
