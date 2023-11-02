@@ -1,14 +1,8 @@
-import { TypeBoxTypeProvider } from "@fastify/type-provider-typebox";
-import { Type } from "@sinclair/typebox";
+import { Type, TypeBoxTypeProvider } from "@fastify/type-provider-typebox";
 import { FastifyPluginAsync } from "fastify";
-import {
-  Status404,
-  Status404Type,
-  Status500,
-  Status500Type,
-} from "../ResponseTypes";
+import { ErrorCodeType, Status500, Status404 } from "../ResponseTypes";
 
-const profile: FastifyPluginAsync = async function (fastify) {
+const profileRoute: FastifyPluginAsync = async (fastify) => {
   const instance = fastify.withTypeProvider<TypeBoxTypeProvider>();
 
   instance.get(
@@ -29,15 +23,15 @@ const profile: FastifyPluginAsync = async function (fastify) {
             mainUrl: Type.Optional(Type.String()),
             avatar: Type.Optional(Type.String({ contentEncoding: "base64" })),
           }),
-          404: Status404Type,
+          404: ErrorCodeType,
         },
       },
     },
     async (req, rep) => {
       try {
-        const userName = req.params.userName;
-        instance.log.info(`get profile userName: ${userName}`);
-        const result = await instance.repo.profileRepo.selectProfile(userName);
+        const result = await instance.repo.profileRepo.selectProfile(
+          req.params.userName
+        );
 
         if (!result) {
           return rep.status(404).send({
@@ -54,10 +48,10 @@ const profile: FastifyPluginAsync = async function (fastify) {
           description: result.description || undefined,
           region: result.region || undefined,
           mainUrl: result.mainUrl || undefined,
-          avatar: result.avatar?.toString("base64") || undefined,
+          avatar: result?.avatar?.toString("base64") || undefined,
         });
       } catch (e) {
-        instance.log.error(`Get Profile Route Error: ${e}`);
+        instance.log.error(`Get Profile Route error: ${e}`);
         return rep.status(500).send(Status500);
       }
     }
@@ -79,7 +73,7 @@ const profile: FastifyPluginAsync = async function (fastify) {
           200: Type.Object({
             id: Type.Integer(),
           }),
-          500: Status500Type,
+          500: ErrorCodeType,
         },
       },
     },
@@ -93,79 +87,14 @@ const profile: FastifyPluginAsync = async function (fastify) {
           description,
           region,
           mainUrl,
-          avatar ? Buffer.from(avatar) : undefined
+          avatar ? Buffer.from(avatar, "base64") : undefined
         );
-
-        if (!result) {
-          return rep.status(500).send({
-            ...Status500,
-            message: "Failed to insert profile",
-          });
-        }
 
         return rep.status(200).send({
           id: Number(result.id),
         });
       } catch (e) {
-        instance.log.error(`Insert Profile Route Error: ${e}`);
-        return rep.status(500).send(Status500);
-      }
-    }
-  );
-
-  instance.get(
-    "/followed/:followerId",
-    {
-      schema: {
-        params: Type.Object({
-          followerId: Type.Integer(),
-        }),
-        response: {
-          200: Type.Array(
-            Type.Object({
-              id: Type.Integer(),
-              updatedAt: Type.String(),
-              userName: Type.String(),
-              fullName: Type.String(),
-              description: Type.Optional(Type.String()),
-              region: Type.Optional(Type.String()),
-              mainUrl: Type.Optional(Type.String()),
-              avatar: Type.Optional(Type.String({ contentEncoding: "base64" })),
-            })
-          ),
-          404: Status404Type,
-        },
-      },
-    },
-    async (req, rep) => {
-      try {
-        const { followerId } = req.params;
-        const result = await instance.repo.profileRepo.selectFollowedProfile(
-          BigInt(followerId)
-        );
-
-        if (!result) {
-          return rep.status(404).send({
-            statusCode: 404,
-            error: "Not Found",
-            message: "Profile not found",
-          });
-        }
-
-        return rep.status(200).send(
-          result.map((profile) => ({
-            id: Number(profile.id),
-            updatedAt: profile.updatedAt.toISOString(),
-            userName: profile.userName,
-            fullName: profile.fullName,
-            description: profile.description || undefined,
-            region: profile.region || undefined,
-            mainUrl: profile.mainUrl || undefined,
-            avatar: profile.avatar?.toString("base64"),
-          }))
-        );
-      } catch (e) {
-        instance.log.error(`Get Followed Route Error: ${e}`);
+        instance.log.error(`Insert new profile error: ${e}`);
         return rep.status(500).send(Status500);
       }
     }
@@ -191,23 +120,20 @@ const profile: FastifyPluginAsync = async function (fastify) {
               avatar: Type.Optional(Type.Any()),
             })
           ),
-          404: Status404Type,
+          404: ErrorCodeType,
         },
       },
     },
     async (req, rep) => {
       try {
-        const { followedId } = req.params;
-        instance.log.info(`get followed ${followedId}`);
         const result = await instance.repo.profileRepo.selectFollowerProfile(
-          BigInt(followedId)
+          BigInt(req.params.followedId)
         );
 
-        if (!result) {
+        if (result.length === 0) {
           return rep.status(404).send({
-            statusCode: 404,
-            error: "Not Found",
-            message: "Profile not found",
+            ...Status404,
+            message: "No followers found",
           });
         }
 
@@ -224,52 +150,11 @@ const profile: FastifyPluginAsync = async function (fastify) {
           }))
         );
       } catch (e) {
-        instance.log.error(`Get Followers Route Error: ${e}`);
-        return rep.status(500).send(Status500);
-      }
-    }
-  );
-
-  instance.post(
-    "/follow",
-    {
-      schema: {
-        body: Type.Object({
-          followerId: Type.Integer(),
-          followedId: Type.Integer(),
-        }),
-        response: {
-          200: Type.Object({
-            followId: Type.Integer(),
-          }),
-          500: Status500Type,
-        },
-      },
-    },
-    async (req, rep) => {
-      try {
-        const { followerId, followedId } = req.body;
-        const result = await instance.repo.profileRepo.insertFollow(
-          BigInt(followerId),
-          BigInt(followedId)
-        );
-
-        if (!result) {
-          return rep.status(500).send({
-            statusCode: 500,
-            error: "Internal Server Error",
-            message: "Failed to insert follow",
-          });
-        }
-
-        return rep.status(200).send({
-          followId: Number(result.id),
-        });
-      } catch (e) {
-        instance.log.error(`Get Follow Route Error: ${e}`);
+        instance.log.error(`Get followers error: ${e}`);
         return rep.status(500).send(Status500);
       }
     }
   );
 };
-export default profile;
+
+export default profileRoute;

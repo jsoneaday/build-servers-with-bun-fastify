@@ -1,11 +1,6 @@
 import { Type, TypeBoxTypeProvider } from "@fastify/type-provider-typebox";
 import { FastifyInstance, FastifyPluginAsync } from "fastify";
-import {
-  Status404Type,
-  Status500,
-  Status404,
-  Status500Type,
-} from "../ResponseTypes";
+import { ErrorCodeType, Status500, Status404 } from "../ResponseTypes";
 
 const messageRoute: FastifyPluginAsync = async function (
   fastify: FastifyInstance
@@ -27,41 +22,39 @@ const messageRoute: FastifyPluginAsync = async function (
               authorId: Type.Integer(),
               body: Type.String(),
               likes: Type.Integer(),
-              image: Type.Any(),
+              image: Type.Optional(Type.Any()),
             })
           ),
-          404: Status404Type,
+          404: ErrorCodeType,
         },
       },
     },
     async (req, rep) => {
       try {
-        const { followerId } = req.params;
-        const result = await instance.repo.messageRepo.selectMessagesOfFollowed(
-          BigInt(followerId)
-        );
+        const result =
+          await instance.repo.messageRepo.selectMessagesFromFollowed(
+            BigInt(req.params.followerId)
+          );
 
         if (result.length === 0) {
           return rep.status(404).send({
             ...Status404,
-            message: "Failed to find followed messages",
+            message: "Followed messages not found",
           });
         }
 
         return rep.status(200).send(
-          result.map((msg) => {
-            return {
-              id: Number(msg.id.toString()),
-              updatedAt: msg.updatedAt.toISOString(),
-              authorId: Number(msg.authorId.toString()),
-              body: msg.body,
-              likes: msg.likes,
-              image: msg.image,
-            };
-          })
+          result.map((message) => ({
+            id: Number(message.id),
+            updatedAt: message.updatedAt.toISOString(),
+            authorId: Number(message.authorId),
+            body: message.body,
+            likes: message.likes,
+            image: message.image,
+          }))
         );
       } catch (e) {
-        instance.log.error(`Get Followed Messages Error: ${e}`);
+        instance.log.error(`Get followed messages error: ${e}`);
         return rep.status(500).send(Status500);
       }
     }
@@ -85,16 +78,17 @@ const messageRoute: FastifyPluginAsync = async function (
               image: Type.Any(),
             })
           ),
-          404: Status404Type,
+          404: ErrorCodeType,
         },
       },
     },
     async (req, rep) => {
       try {
         const { authorId } = req.params;
-        const result = await instance.repo.messageRepo.selectMessagesByAuthorId(
-          BigInt(authorId)
-        );
+        const result =
+          await instance.repo.messageRepo.selectedMessagesByAuthorId(
+            BigInt(authorId)
+          );
 
         if (result.length === 0) {
           return rep.status(404).send({
@@ -140,14 +134,14 @@ const messageRoute: FastifyPluginAsync = async function (
               image: Type.Any(),
             })
           ),
-          404: Status404Type,
+          404: ErrorCodeType,
         },
       },
     },
     async (req, rep) => {
       try {
         const { respondedMsgId } = req.params;
-        const result = await instance.repo.messageRepo.selectMessageResponses(
+        const result = await instance.repo.messageRepo.selectMessagesResponses(
           BigInt(respondedMsgId)
         );
 
@@ -161,12 +155,12 @@ const messageRoute: FastifyPluginAsync = async function (
         return rep.status(200).send(
           result.map((msg) => {
             return {
-              id: Number(msg.responder.id.toString()),
-              updatedAt: msg.responder.updatedAt.toISOString(),
-              authorId: Number(msg.responder.authorId.toString()),
-              body: msg.responder.body,
-              likes: msg.responder.likes,
-              image: msg.responder.image,
+              id: Number(msg.responderMsg.id.toString()),
+              updatedAt: msg.responderMsg.updatedAt.toISOString(),
+              authorId: Number(msg.responderMsg.authorId.toString()),
+              body: msg.responderMsg.body,
+              likes: msg.responderMsg.likes,
+              image: msg.responderMsg.image,
             };
           })
         );
@@ -178,11 +172,11 @@ const messageRoute: FastifyPluginAsync = async function (
   );
 
   instance.get(
-    "/broadcastermsgs/:broadcastMsgId",
+    "/broadcastermsgs/:broadcastId",
     {
       schema: {
         params: Type.Object({
-          broadcastMsgId: Type.Integer(),
+          broadcastId: Type.Integer(),
         }),
         response: {
           200: Type.Array(
@@ -192,41 +186,38 @@ const messageRoute: FastifyPluginAsync = async function (
               authorId: Type.Integer(),
               body: Type.String(),
               likes: Type.Integer(),
-              image: Type.Any(),
+              image: Type.Optional(Type.Any()),
             })
           ),
-          404: Status404Type,
+          404: ErrorCodeType,
         },
       },
     },
     async (req, rep) => {
       try {
-        const { broadcastMsgId } = req.params;
         const result = await instance.repo.messageRepo.selectMessageBroadcasts(
-          BigInt(broadcastMsgId)
+          BigInt(req.params.broadcastId)
         );
 
         if (result.length === 0) {
           return rep.status(404).send({
             ...Status404,
-            message: "Failed to find broadcaster messages",
+            message: "Broadcasters not found",
           });
         }
 
         return rep.status(200).send(
-          result.map((msg) => {
-            return {
-              id: Number(msg.broadcaster.id.toString()),
-              updatedAt: msg.broadcaster.updatedAt.toISOString(),
-              authorId: Number(msg.broadcaster.authorId.toString()),
-              body: msg.broadcaster.body,
-              likes: msg.broadcaster.likes,
-              image: msg.broadcaster.image,
-            };
-          })
+          result.map((message) => ({
+            id: Number(message.broadcasterMsg.id),
+            updatedAt: message.broadcasterMsg.updatedAt.toISOString(),
+            authorId: Number(message.broadcasterMsg.authorId),
+            body: message.broadcasterMsg.body,
+            likes: message.broadcasterMsg.likes,
+            image: message.broadcasterMsg.image,
+          }))
         );
       } catch (e) {
-        instance.log.error(`Get Broadcaster Messages Error: ${e}`);
+        instance.log.error(`Get broadcaster messages error: ${e}`);
         return rep.status(500).send(Status500);
       }
     }
@@ -240,36 +231,42 @@ const messageRoute: FastifyPluginAsync = async function (
           authorId: Type.Integer(),
           body: Type.String(),
           image: Type.Optional(Type.Any()),
+          respondedMsgId: Type.Optional(Type.Integer()),
+          broadcastMsgId: Type.Optional(Type.Integer()),
+          additionalMessage: Type.Optional(Type.String()),
         }),
         response: {
           200: Type.Object({
             id: Type.Integer(),
           }),
-          500: Status500Type,
+          500: ErrorCodeType,
         },
       },
     },
     async (req, rep) => {
       try {
-        const { authorId, body, image } = req.body;
+        const {
+          authorId,
+          body,
+          image,
+          respondedMsgId,
+          broadcastMsgId,
+          additionalMessage,
+        } = req.body;
         const result = await instance.repo.messageRepo.insertMessage(
           BigInt(authorId),
           body,
-          image
+          image,
+          respondedMsgId ? BigInt(respondedMsgId) : undefined,
+          broadcastMsgId ? BigInt(broadcastMsgId) : undefined,
+          additionalMessage
         );
-
-        if (!result) {
-          return rep.status(500).send({
-            ...Status500,
-            message: "Failed to insert message",
-          });
-        }
 
         return rep.status(200).send({
           id: Number(result.id),
         });
       } catch (e) {
-        instance.log.error(`Create Message Route Error: ${e}`);
+        instance.log.error(`Insert new message error: ${e}`);
         return rep.status(500).send(Status500);
       }
     }

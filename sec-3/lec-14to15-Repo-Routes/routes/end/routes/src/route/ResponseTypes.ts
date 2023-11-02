@@ -12,13 +12,7 @@ export const Status500 = {
   message: "An internal server error has occurred",
 };
 
-export const Status404Type = Type.Object({
-  statusCode: Type.Integer(),
-  error: Type.String(),
-  message: Type.String(),
-});
-
-export const Status500Type = Type.Object({
+export const ErrorCodeType = Type.Object({
   statusCode: Type.Integer(),
   error: Type.String(),
   message: Type.String(),
