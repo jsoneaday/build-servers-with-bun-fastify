@@ -1,10 +1,9 @@
 class HelloWorld {
-  constructor(private message: string) {}
-
+  constructor(private greeting: string) {}
   greet() {
-    console.log(this.message);
+    console.log(this.greeting);
   }
 }
 
-const greeter = new HelloWorld(process.env.GREETING || "");
+const greeter = new HelloWorld("546456");
 greeter.greet();
